@@ -1,9 +1,8 @@
-// API Services
-
-export { WorldBankService, worldBankService } from './WorldBankService';
-
 // Import for internal use
 import { worldBankService } from './WorldBankService';
+
+// API Services
+export { WorldBankService, worldBankService } from './WorldBankService';
 
 // Service registry for managing multiple API services
 export class ApiServiceRegistry {

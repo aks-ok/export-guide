@@ -12,7 +12,8 @@
 
   - _Requirements: 4.1, 4.2_
 
-- [x] 2. Create data models and interfaces
+- [-] 2. Create data models and interfaces
+
 
 
 

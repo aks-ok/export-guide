@@ -1,3 +1,8 @@
+// Import for internal use
+import { cacheManager } from './CacheManager';
+import { BaseApiService, apiConfig } from './ApiService';
+import { setupGlobalErrorHandling } from './ErrorHandler';
+
 // Main exports for the services layer
 
 // Types
@@ -8,11 +13,6 @@ export { BaseApiService, apiConfig } from './ApiService';
 export { LocalStorageCacheManager, cacheManager } from './CacheManager';
 export { ErrorHandler, errorHandler, useErrorHandler, setupGlobalErrorHandling } from './ErrorHandler';
 export { DashboardService, dashboardService } from './DashboardService';
-
-// Import for internal use
-import { cacheManager } from './CacheManager';
-import { BaseApiService, apiConfig } from './ApiService';
-import { setupGlobalErrorHandling } from './ErrorHandler';
 
 // Service Factory
 export class ServiceFactory {

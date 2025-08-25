@@ -294,7 +294,7 @@ export class ApiConfig {
   }
 
   public isRealDataEnabled(): boolean {
-    return this.get<boolean>('ENABLE_REAL_DATA') ?? false;
+    return this.get<boolean>('REACT_APP_ENABLE_REAL_DATA') ?? false;
   }
 
   public shouldFallbackToMock(): boolean {

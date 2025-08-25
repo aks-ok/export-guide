@@ -16,11 +16,19 @@ import SimpleExportCompliancePage from './pages/SimpleExportCompliancePage';
 import FreeAPIDemo from './pages/FreeAPIDemo';
 import EnhancedAPIDemo from './pages/EnhancedAPIDemo';
 import { googleAnalyticsService } from './services/GoogleAnalyticsService';
+import { initializeServices } from './services';
+import { initializeApiServices } from './services/api';
 
 
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
+
+  // Initialize services on app startup
+  useEffect(() => {
+    initializeServices();
+    initializeApiServices();
+  }, []);
 
   // Track page views with Google Analytics
   useEffect(() => {
