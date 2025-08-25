@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -137,14 +137,10 @@ const QuotationPage: React.FC = () => {
     loadQuotations();
   }, []);
 
-  useEffect(() => {
-    calculateTotals();
-  }, [currentQuotation.items, currentQuotation.shipping_cost]);
-
   const loadQuotations = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('quotations')
         .select('*')
         .order('created_at', { ascending: false })
@@ -172,7 +168,7 @@ const QuotationPage: React.FC = () => {
     return afterDiscount + taxAmount;
   };
 
-  const calculateTotals = () => {
+  const calculateTotals = useCallback(() => {
     const subtotal = currentQuotation.items.reduce((sum, item) => {
       return sum + (item.quantity * item.unit_price);
     }, 0);
@@ -195,7 +191,11 @@ const QuotationPage: React.FC = () => {
       total_tax: totalTax,
       grand_total: grandTotal
     }));
-  };
+  }, [currentQuotation.items, currentQuotation.shipping_cost]);
+
+  useEffect(() => {
+    calculateTotals();
+  }, [calculateTotals]);
 
   const addItem = () => {
     const itemWithTotal = {
@@ -248,7 +248,7 @@ const QuotationPage: React.FC = () => {
       }
 
       // Try to save to database
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('quotations')
         .insert([{
           quotation_number: currentQuotation.quotation_number,

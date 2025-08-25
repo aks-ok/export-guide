@@ -16,7 +16,6 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  useTheme,
 } from '@mui/material';
 import {
   TrendingUp as TrendingUpIcon,
