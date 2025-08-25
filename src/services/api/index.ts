@@ -2,6 +2,9 @@
 
 export { WorldBankService, worldBankService } from './WorldBankService';
 
+// Import for internal use
+import { worldBankService } from './WorldBankService';
+
 // Service registry for managing multiple API services
 export class ApiServiceRegistry {
   private static services: Map<string, any> = new Map();
@@ -33,7 +36,7 @@ export class ApiServiceRegistry {
   public static async healthCheckAll(): Promise<Record<string, boolean>> {
     const results: Record<string, boolean> = {};
     
-    for (const [name, service] of this.services) {
+    for (const [name, service] of Array.from(this.services.entries())) {
       try {
         if (typeof service.healthCheck === 'function') {
           results[name] = await service.healthCheck();
@@ -77,7 +80,7 @@ export const getServiceHealth = async (): Promise<{
 export const getServiceStats = (): Record<string, any> => {
   const stats: Record<string, any> = {};
   
-  for (const [name, service] of ApiServiceRegistry.getAll()) {
+  for (const [name, service] of Array.from(ApiServiceRegistry.getAll().entries())) {
     if (typeof service.getUsageStats === 'function') {
       stats[name] = service.getUsageStats();
     }

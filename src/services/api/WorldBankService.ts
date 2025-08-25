@@ -95,7 +95,7 @@ export class WorldBankService extends BaseApiService {
       }
       throw new ApiServiceError(
         ApiErrorCode.SERVER_ERROR,
-        `Failed to fetch trade statistics: ${error.message}`,
+        `Failed to fetch trade statistics: ${error instanceof Error ? error.message : 'Unknown error'}`,
         true,
         error
       );
@@ -172,7 +172,7 @@ export class WorldBankService extends BaseApiService {
       }
       throw new ApiServiceError(
         ApiErrorCode.SERVER_ERROR,
-        `Failed to fetch market data: ${error.message}`,
+        `Failed to fetch market data: ${error instanceof Error ? error.message : 'Unknown error'}`,
         true,
         error
       );
@@ -221,7 +221,7 @@ export class WorldBankService extends BaseApiService {
       }
       throw new ApiServiceError(
         ApiErrorCode.SERVER_ERROR,
-        `Failed to fetch economic indicators: ${error.message}`,
+        `Failed to fetch economic indicators: ${error instanceof Error ? error.message : 'Unknown error'}`,
         true,
         error
       );
@@ -268,7 +268,7 @@ export class WorldBankService extends BaseApiService {
       }
       throw new ApiServiceError(
         ApiErrorCode.SERVER_ERROR,
-        `Failed to fetch countries: ${error.message}`,
+        `Failed to fetch countries: ${error instanceof Error ? error.message : 'Unknown error'}`,
         true,
         error
       );
@@ -321,7 +321,7 @@ export class WorldBankService extends BaseApiService {
       }
       throw new ApiServiceError(
         ApiErrorCode.SERVER_ERROR,
-        `Failed to search indicators: ${error.message}`,
+        `Failed to search indicators: ${error instanceof Error ? error.message : 'Unknown error'}`,
         true,
         error
       );

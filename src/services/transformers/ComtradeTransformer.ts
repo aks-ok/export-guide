@@ -163,7 +163,7 @@ export class ComtradeTransformer {
         const percentage = totalTrade > 0 ? (totalValue / totalTrade) * 100 : 0;
         
         // Calculate growth rate if we have multiple years
-        const years = [...new Set(productRecords.map(r => r.refYear))].sort();
+        const years = Array.from(new Set(productRecords.map(r => r.refYear))).sort();
         let growthRate = 0;
         
         if (years.length >= 2) {
@@ -291,7 +291,7 @@ export class ComtradeTransformer {
     else if (totalValue > 10000000) score += 10; // > $10M
     
     // Growth factor (0-20 points)
-    const years = [...new Set(records.map(r => r.refYear))].sort();
+    const years = Array.from(new Set(records.map(r => r.refYear))).sort();
     if (years.length >= 2) {
       const latestYear = years[years.length - 1];
       const previousYear = years[years.length - 2];

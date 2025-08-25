@@ -73,7 +73,7 @@ export class DashboardService {
       errorHandler.handleError(
         error instanceof ApiServiceError ? error : new ApiServiceError(
           ApiErrorCode.SERVER_ERROR,
-          `Dashboard stats error: ${error.message}`,
+          `Dashboard stats error: ${error instanceof Error ? error.message : 'Unknown error'}`,
           true,
           error
         ),
@@ -122,7 +122,7 @@ export class DashboardService {
       errorHandler.handleError(
         error instanceof ApiServiceError ? error : new ApiServiceError(
           ApiErrorCode.SERVER_ERROR,
-          `Performance metrics error: ${error.message}`,
+          `Performance metrics error: ${error instanceof Error ? error.message : 'Unknown error'}`,
           false,
           error
         ),
