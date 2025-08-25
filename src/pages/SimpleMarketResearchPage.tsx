@@ -20,42 +20,47 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  LinearProgress
+  LinearProgress,
+  Skeleton
 } from '@mui/material';
 import {
   Search as SearchIcon,
   TrendingUp as TrendingUpIcon,
   Public as PublicIcon,
-  Assessment as AssessmentIcon
+  Assessment as AssessmentIcon,
+  Warning as WarningIcon,
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
-
-interface MarketOpportunity {
-  id: number;
-  country: string;
-  product_category: string;
-  market_size: number;
-  growth_rate: number;
-  competition_level: 'low' | 'medium' | 'high';
-  opportunity_score: number;
-  tariff_rate: number;
-  created_at: string;
-}
+import { worldBankService } from '../services/api/WorldBankService';
+import { MarketData, MarketSearchParams } from '../services/types';
+import { useErrorHandler } from '../services/ErrorHandler';
+import { apiConfig } from '../services/ApiService';
+import { DataTransformUtils } from '../services/transformers';
 
 interface MarketSearch {
   product_category: string;
   target_countries: string[];
   min_market_size?: number;
+  max_tariff_rate?: number;
+  min_growth_rate?: number;
+  competition_level?: ('low' | 'medium' | 'high')[];
 }
 
 const SimpleMarketResearchPage: React.FC = () => {
-  const [opportunities, setOpportunities] = useState<MarketOpportunity[]>([]);
+  const [marketData, setMarketData] = useState<MarketData[]>([]);
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dataSource, setDataSource] = useState<string>('');
   const [searchData, setSearchData] = useState<MarketSearch>({
     product_category: '',
     target_countries: [],
-    min_market_size: undefined
+    min_market_size: undefined,
+    max_tariff_rate: undefined,
+    min_growth_rate: undefined,
+    competition_level: undefined
   });
+
+  const { handleApiError } = useErrorHandler();
 
   // Sample product categories
   const productCategories = [
@@ -63,35 +68,33 @@ const SimpleMarketResearchPage: React.FC = () => {
     'Chemicals', 'Medical Devices', 'Software', 'Construction Materials', 'Energy Equipment'
   ];
 
-  // Sample countries
+  // Major economies for market research
   const countries = [
-    'Germany', 'United Kingdom', 'France', 'Japan', 'China', 'Canada',
-    'Australia', 'Brazil', 'India', 'Mexico', 'South Korea', 'Italy'
+    'United States', 'Germany', 'United Kingdom', 'France', 'Japan', 'China', 
+    'Canada', 'Australia', 'Brazil', 'India', 'Mexico', 'South Korea', 
+    'Italy', 'Netherlands', 'Spain', 'Switzerland', 'Belgium', 'Sweden'
   ];
 
-  const generateMockOpportunities = (searchData: MarketSearch): MarketOpportunity[] => {
-    const mockData: MarketOpportunity[] = [];
+  // Generate fallback mock data when real data is unavailable
+  const generateFallbackData = (searchData: MarketSearch): MarketData[] => {
     const targetCountries = searchData.target_countries.length > 0 
       ? searchData.target_countries 
       : countries.slice(0, 6);
 
-    targetCountries.forEach((country, index) => {
-      const opportunity: MarketOpportunity = {
-        id: Date.now() + index,
-        country,
-        product_category: searchData.product_category,
-        market_size: Math.floor(Math.random() * 500000000) + 50000000, // 50M - 550M
-        growth_rate: Math.round((Math.random() * 15 + 2) * 10) / 10, // 2% - 17%
-        competition_level: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)] as any,
-        opportunity_score: Math.floor(Math.random() * 40) + 60, // 60-100
-        tariff_rate: Math.round((Math.random() * 20) * 10) / 10, // 0% - 20%
-        created_at: new Date().toISOString()
-      };
-      mockData.push(opportunity);
-    });
-
-    // Sort by opportunity score
-    return mockData.sort((a, b) => b.opportunity_score - a.opportunity_score);
+    return targetCountries.map((country, index) => ({
+      id: `fallback_${Date.now()}_${index}`,
+      country,
+      countryCode: country.substring(0, 3).toUpperCase(),
+      productCategory: searchData.product_category,
+      marketSize: Math.floor(Math.random() * 500000000000) + 50000000000, // 50B - 550B
+      growthRate: Math.round((Math.random() * 15 + 2) * 10) / 10, // 2% - 17%
+      competitionLevel: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)] as any,
+      tariffRate: Math.round((Math.random() * 20) * 10) / 10, // 0% - 20%
+      tradeVolume: Math.floor(Math.random() * 100000000000) + 10000000000, // 10B - 110B
+      lastUpdated: new Date(),
+      source: 'Fallback Data',
+      reliability: 'low' as const
+    })).sort((a, b) => b.marketSize - a.marketSize);
   };
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -106,19 +109,82 @@ const SimpleMarketResearchPage: React.FC = () => {
       setSearching(true);
       setError(null);
 
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Check if real data is enabled
+      if (!apiConfig.isRealDataEnabled()) {
+        // Use fallback data
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate delay
+        const fallbackData = generateFallbackData(searchData);
+        setMarketData(fallbackData);
+        setDataSource('Mock Data (Real data disabled)');
+        return;
+      }
 
-      // Generate mock opportunities
-      const mockOpportunities = generateMockOpportunities(searchData);
-      setOpportunities(mockOpportunities);
+      // Prepare search parameters for World Bank API
+      const searchParams: MarketSearchParams = {
+        productCategory: searchData.product_category,
+        countries: searchData.target_countries.length > 0 ? 
+          searchData.target_countries.map(country => getCountryCode(country)) : 
+          undefined,
+        minMarketSize: searchData.min_market_size,
+        maxTariffRate: searchData.max_tariff_rate,
+        minGrowthRate: searchData.min_growth_rate,
+        competitionLevel: searchData.competition_level
+      };
+
+      // Fetch real market data from World Bank API
+      const response = await worldBankService.getMarketData(searchParams);
+
+      if (response.success && response.data.length > 0) {
+        setMarketData(response.data);
+        setDataSource(response.source);
+      } else {
+        // Fallback to mock data if no real data available
+        const fallbackData = generateFallbackData(searchData);
+        setMarketData(fallbackData);
+        setDataSource('Fallback Data (No real data available)');
+      }
 
     } catch (err) {
-      console.error('Error searching opportunities:', err);
-      setError('Failed to search market opportunities');
+      console.error('Error searching market opportunities:', err);
+      handleApiError(err, 'SimpleMarketResearchPage');
+      
+      // Use fallback data on error
+      if (apiConfig.shouldFallbackToMock()) {
+        const fallbackData = generateFallbackData(searchData);
+        setMarketData(fallbackData);
+        setDataSource('Fallback Data (API Error)');
+        setError('Using fallback data due to API issues');
+      } else {
+        setError('Failed to search market opportunities');
+      }
     } finally {
       setSearching(false);
     }
+  };
+
+  // Helper function to convert country names to codes
+  const getCountryCode = (countryName: string): string => {
+    const countryMap: Record<string, string> = {
+      'United States': 'USA',
+      'Germany': 'DEU',
+      'United Kingdom': 'GBR',
+      'France': 'FRA',
+      'Japan': 'JPN',
+      'China': 'CHN',
+      'Canada': 'CAN',
+      'Australia': 'AUS',
+      'Brazil': 'BRA',
+      'India': 'IND',
+      'Mexico': 'MEX',
+      'South Korea': 'KOR',
+      'Italy': 'ITA',
+      'Netherlands': 'NLD',
+      'Spain': 'ESP',
+      'Switzerland': 'CHE',
+      'Belgium': 'BEL',
+      'Sweden': 'SWE'
+    };
+    return countryMap[countryName] || countryName.substring(0, 3).toUpperCase();
   };
 
   const getCompetitionColor = (level: string) => {
@@ -130,9 +196,18 @@ const SimpleMarketResearchPage: React.FC = () => {
     }
   };
 
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'success';
-    if (score >= 60) return 'warning';
+  const getReliabilityColor = (reliability: string) => {
+    switch (reliability) {
+      case 'high': return 'success';
+      case 'medium': return 'warning';
+      case 'low': return 'error';
+      default: return 'default';
+    }
+  };
+
+  const getGrowthColor = (growthRate: number) => {
+    if (growthRate >= 5) return 'success';
+    if (growthRate >= 2) return 'warning';
     return 'error';
   };
 
@@ -152,9 +227,39 @@ const SimpleMarketResearchPage: React.FC = () => {
       </Typography>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+        <Alert 
+          severity={error.includes('fallback') ? 'warning' : 'error'} 
+          sx={{ mb: 2 }} 
+          onClose={() => setError(null)}
+          action={
+            error.includes('API') ? (
+              <Button color="inherit" size="small" onClick={() => handleSearch({ preventDefault: () => {} } as any)}>
+                <RefreshIcon sx={{ mr: 0.5 }} />
+                Retry
+              </Button>
+            ) : undefined
+          }
+        >
           {error}
         </Alert>
+      )}
+
+      {/* Data Source Indicator */}
+      {dataSource && (
+        <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Chip
+            size="small"
+            icon={dataSource.includes('World Bank') ? <TrendingUpIcon /> : <WarningIcon />}
+            label={`Data Source: ${dataSource}`}
+            color={dataSource.includes('World Bank') ? 'success' : 'warning'}
+            variant="outlined"
+          />
+          {marketData.length > 0 && (
+            <Typography variant="caption" color="text.secondary">
+              Last updated: {marketData[0]?.lastUpdated.toLocaleString()}
+            </Typography>
+          )}
+        </Box>
       )}
 
       {/* Market Opportunity Search */}
@@ -234,7 +339,9 @@ const SimpleMarketResearchPage: React.FC = () => {
           {searching && (
             <Box sx={{ mt: 2 }}>
               <Typography variant="body2" color="text.secondary" gutterBottom>
-                Analyzing global market data...
+                {apiConfig.isRealDataEnabled() 
+                  ? 'Fetching real market data from World Bank API...' 
+                  : 'Generating market analysis...'}
               </Typography>
               <LinearProgress />
             </Box>
@@ -242,13 +349,13 @@ const SimpleMarketResearchPage: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Market Opportunities Results */}
-      {opportunities.length > 0 && (
+      {/* Market Research Results */}
+      {searching ? (
         <Card>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               <AssessmentIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-              Market Opportunities for {searchData.product_category}
+              Loading Market Data...
             </Typography>
             
             <TableContainer component={Paper} sx={{ mt: 2 }}>
@@ -260,48 +367,106 @@ const SimpleMarketResearchPage: React.FC = () => {
                     <TableCell>Growth Rate</TableCell>
                     <TableCell>Competition</TableCell>
                     <TableCell>Tariff Rate</TableCell>
-                    <TableCell>Opportunity Score</TableCell>
+                    <TableCell>Data Reliability</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {opportunities.map((opportunity) => (
-                    <TableRow key={opportunity.id}>
+                  {Array.from({ length: 6 }).map((_, index) => (
+                    <TableRow key={index}>
+                      <TableCell><Skeleton variant="text" width={120} /></TableCell>
+                      <TableCell><Skeleton variant="text" width={80} /></TableCell>
+                      <TableCell><Skeleton variant="text" width={60} /></TableCell>
+                      <TableCell><Skeleton variant="rectangular" width={70} height={24} /></TableCell>
+                      <TableCell><Skeleton variant="text" width={50} /></TableCell>
+                      <TableCell><Skeleton variant="rectangular" width={60} height={24} /></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </CardContent>
+        </Card>
+      ) : marketData.length > 0 ? (
+        <Card>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+              <Typography variant="h6">
+                <AssessmentIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                Market Analysis for {searchData.product_category}
+              </Typography>
+              <Button
+                size="small"
+                startIcon={<RefreshIcon />}
+                onClick={() => handleSearch({ preventDefault: () => {} } as any)}
+                disabled={searching}
+              >
+                Refresh Data
+              </Button>
+            </Box>
+            
+            <TableContainer component={Paper} sx={{ mt: 2 }}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Country</TableCell>
+                    <TableCell>Market Size</TableCell>
+                    <TableCell>Growth Rate</TableCell>
+                    <TableCell>Competition</TableCell>
+                    <TableCell>Tariff Rate</TableCell>
+                    <TableCell>Data Reliability</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {marketData.map((market) => (
+                    <TableRow key={market.id}>
                       <TableCell>
                         <Box display="flex" alignItems="center" gap={1}>
                           <PublicIcon fontSize="small" color="action" />
-                          <strong>{opportunity.country}</strong>
+                          <strong>{market.country}</strong>
+                          <Typography variant="caption" color="text.secondary">
+                            ({market.countryCode})
+                          </Typography>
                         </Box>
                       </TableCell>
-                      <TableCell>{formatCurrency(opportunity.market_size)}</TableCell>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight="medium">
+                          {DataTransformUtils.formatLargeNumber(market.marketSize)}
+                        </Typography>
+                      </TableCell>
                       <TableCell>
                         <Box display="flex" alignItems="center" gap={1}>
-                          <TrendingUpIcon fontSize="small" color="success" />
-                          {opportunity.growth_rate}%
+                          <TrendingUpIcon 
+                            fontSize="small" 
+                            color={getGrowthColor(market.growthRate) as any}
+                          />
+                          <Typography 
+                            variant="body2" 
+                            color={getGrowthColor(market.growthRate) === 'success' ? 'success.main' : 
+                                   getGrowthColor(market.growthRate) === 'warning' ? 'warning.main' : 'error.main'}
+                          >
+                            {market.growthRate.toFixed(1)}%
+                          </Typography>
                         </Box>
                       </TableCell>
                       <TableCell>
                         <Chip
-                          label={opportunity.competition_level.toUpperCase()}
-                          color={getCompetitionColor(opportunity.competition_level) as any}
+                          label={market.competitionLevel.toUpperCase()}
+                          color={getCompetitionColor(market.competitionLevel) as any}
                           size="small"
                           variant="outlined"
                         />
                       </TableCell>
-                      <TableCell>{opportunity.tariff_rate}%</TableCell>
                       <TableCell>
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <Chip
-                            label={`${opportunity.opportunity_score}/100`}
-                            color={getScoreColor(opportunity.opportunity_score) as any}
-                            size="small"
-                          />
-                          <LinearProgress
-                            variant="determinate"
-                            value={opportunity.opportunity_score}
-                            sx={{ width: 60, height: 6, borderRadius: 3 }}
-                            color={getScoreColor(opportunity.opportunity_score) as any}
-                          />
-                        </Box>
+                        <Typography variant="body2">
+                          {market.tariffRate.toFixed(1)}%
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={market.reliability.toUpperCase()}
+                          color={getReliabilityColor(market.reliability) as any}
+                          size="small"
+                        />
                       </TableCell>
                     </TableRow>
                   ))}
@@ -311,16 +476,16 @@ const SimpleMarketResearchPage: React.FC = () => {
 
             <Alert severity="info" sx={{ mt: 2 }}>
               <Typography variant="body2">
-                <strong>Opportunity Score</strong> is calculated based on market size, growth rate, 
-                competition level, regulatory environment, and trade barriers.
+                <strong>Market Analysis</strong> is based on {dataSource.includes('World Bank') ? 'real economic data from World Bank APIs' : 'estimated market data'}. 
+                Growth rates reflect recent economic trends, and competition levels are assessed based on trade volumes and market dynamics.
               </Typography>
             </Alert>
           </CardContent>
         </Card>
-      )}
+      ) : null}
 
       {/* Empty State */}
-      {opportunities.length === 0 && !searching && (
+      {marketData.length === 0 && !searching && (
         <Card>
           <CardContent sx={{ textAlign: 'center', py: 6 }}>
             <SearchIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />

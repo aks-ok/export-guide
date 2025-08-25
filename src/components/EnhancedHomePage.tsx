@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -16,6 +16,9 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
+  CircularProgress,
+  Alert,
+  Skeleton,
 } from '@mui/material';
 import {
   TrendingUp as TrendingUpIcon,
@@ -28,51 +31,113 @@ import {
   Search as SearchIcon,
   ArrowForward as ArrowForwardIcon,
   Notifications as NotificationsIcon,
-
+  Refresh as RefreshIcon,
+  Warning as WarningIcon,
 } from '@mui/icons-material';
 import { colorPalette, getGradientBackground, getBoxShadow } from '../theme/ExportGuideTheme';
+import { dashboardService } from '../services/DashboardService';
+import { DashboardStats, PerformanceMetrics } from '../services/types';
+import { useErrorHandler } from '../services/ErrorHandler';
+import { DataTransformUtils } from '../services/transformers';
 
 interface EnhancedHomePageProps {
   onNavigate: (page: string) => void;
 }
 
 const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
+  const [performanceMetrics, setPerformanceMetrics] = useState<PerformanceMetrics | null>(null);
+  const [topMarkets, setTopMarkets] = useState<any[]>([]);
+  const [recentActivities, setRecentActivities] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [dataSource, setDataSource] = useState<string>('Loading...');
+  const { handleApiError } = useErrorHandler();
 
-  // Mock data for dashboard
-  const dashboardStats = [
-    {
-      title: 'Active Leads',
-      value: '1,247',
-      change: '+12.5%',
-      trend: 'up',
-      color: colorPalette.accent.success,
-      icon: <SearchIcon />,
-    },
-    {
-      title: 'Export Value',
-      value: '$2.8M',
-      change: '+8.3%',
-      trend: 'up',
-      color: colorPalette.accent.export,
-      icon: <PublicIcon />,
-    },
-    {
-      title: 'Active Buyers',
-      value: '342',
-      change: '+15.2%',
-      trend: 'up',
-      color: colorPalette.accent.info,
-      icon: <BusinessIcon />,
-    },
-    {
-      title: 'Compliance Score',
-      value: '94%',
-      change: '-2.1%',
-      trend: 'down',
-      color: colorPalette.accent.warning,
-      icon: <SecurityIcon />,
-    },
-  ];
+  // Load dashboard data
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Load all dashboard data in parallel
+      const [statsResponse, metricsResponse, marketsData, activitiesData] = await Promise.all([
+        dashboardService.getDashboardStats(),
+        dashboardService.getPerformanceMetrics(),
+        dashboardService.getTopExportMarkets(),
+        Promise.resolve(dashboardService.getRecentActivities())
+      ]);
+
+      if (statsResponse.success) {
+        setDashboardStats(statsResponse.data);
+        setDataSource(statsResponse.source);
+      }
+
+      if (metricsResponse.success) {
+        setPerformanceMetrics(metricsResponse.data);
+      }
+
+      setTopMarkets(marketsData);
+      setRecentActivities(activitiesData);
+
+    } catch (err) {
+      const errorMessage = 'Failed to load dashboard data';
+      setError(errorMessage);
+      handleApiError(err, 'EnhancedHomePage');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRefresh = () => {
+    loadDashboardData();
+  };
+
+  // Transform dashboard stats to display format
+  const getDisplayStats = () => {
+    if (!dashboardStats) return [];
+
+    return [
+      {
+        title: 'Active Leads',
+        value: dashboardStats.activeLeads.toLocaleString(),
+        change: `${dashboardStats.leadsChange > 0 ? '+' : ''}${dashboardStats.leadsChange.toFixed(1)}%`,
+        trend: dashboardStats.leadsChange >= 0 ? 'up' : 'down',
+        color: colorPalette.accent.success,
+        icon: <SearchIcon />,
+      },
+      {
+        title: 'Export Value',
+        value: DataTransformUtils.formatLargeNumber(dashboardStats.exportValue),
+        change: `${dashboardStats.exportChange > 0 ? '+' : ''}${dashboardStats.exportChange.toFixed(1)}%`,
+        trend: dashboardStats.exportChange >= 0 ? 'up' : 'down',
+        color: colorPalette.accent.export,
+        icon: <PublicIcon />,
+      },
+      {
+        title: 'Active Buyers',
+        value: dashboardStats.activeBuyers.toLocaleString(),
+        change: `${dashboardStats.buyersChange > 0 ? '+' : ''}${dashboardStats.buyersChange.toFixed(1)}%`,
+        trend: dashboardStats.buyersChange >= 0 ? 'up' : 'down',
+        color: colorPalette.accent.info,
+        icon: <BusinessIcon />,
+      },
+      {
+        title: 'Compliance Score',
+        value: `${Math.round(dashboardStats.complianceScore)}%`,
+        change: `${dashboardStats.complianceChange > 0 ? '+' : ''}${dashboardStats.complianceChange.toFixed(1)}%`,
+        trend: dashboardStats.complianceChange >= 0 ? 'up' : 'down',
+        color: colorPalette.accent.warning,
+        icon: <SecurityIcon />,
+      },
+    ];
+  };
+
+  const displayStats = getDisplayStats();
 
   const quickActions = [
     {
@@ -105,47 +170,56 @@ const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
     },
   ];
 
-  const recentActivities = [
-    {
-      title: 'New export opportunity identified',
-      description: 'Electronics to Germany - $500K potential',
-      time: '2 hours ago',
-      type: 'opportunity',
-      icon: <TrendingUpIcon />,
-    },
-    {
-      title: 'Compliance check completed',
-      description: 'All textile exports cleared for EU',
-      time: '4 hours ago',
-      type: 'compliance',
-      icon: <SecurityIcon />,
-    },
-    {
-      title: 'Quotation sent to buyer',
-      description: 'ABC Corp - Pharmaceutical products',
-      time: '6 hours ago',
-      type: 'quotation',
-      icon: <EmailIcon />,
-    },
-    {
-      title: 'Market analysis updated',
-      description: 'India-UAE trade corridor report',
-      time: '1 day ago',
-      type: 'research',
-      icon: <AssessmentIcon />,
-    },
-  ];
-
-  const topMarkets = [
-    { country: 'United States', value: '$1.2M', growth: '+15%', flag: '🇺🇸' },
-    { country: 'Germany', value: '$890K', growth: '+12%', flag: '🇩🇪' },
-    { country: 'United Kingdom', value: '$650K', growth: '+8%', flag: '🇬🇧' },
-    { country: 'Japan', value: '$540K', growth: '+22%', flag: '🇯🇵' },
-    { country: 'Australia', value: '$420K', growth: '+18%', flag: '🇦🇺' },
-  ];
+  // Helper function to get icon component from string
+  const getIconComponent = (iconName: string) => {
+    const iconMap: Record<string, React.ReactElement> = {
+      'TrendingUpIcon': <TrendingUpIcon />,
+      'SecurityIcon': <SecurityIcon />,
+      'EmailIcon': <EmailIcon />,
+      'AssessmentIcon': <AssessmentIcon />,
+    };
+    return iconMap[iconName] || <TrendingUpIcon />;
+  };
 
   return (
     <Box sx={{ p: { xs: 2, md: 3 }, backgroundColor: colorPalette.background.default, minHeight: '100vh' }}>
+      {/* Error Alert */}
+      {error && (
+        <Alert 
+          severity="warning" 
+          sx={{ mb: 3 }}
+          action={
+            <Button color="inherit" size="small" onClick={handleRefresh} startIcon={<RefreshIcon />}>
+              Retry
+            </Button>
+          }
+        >
+          {error}. Using fallback data.
+        </Alert>
+      )}
+
+      {/* Data Source Indicator */}
+      {dataSource && (
+        <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Chip
+            size="small"
+            icon={dataSource.includes('World Bank') ? <TrendingUpIcon /> : <WarningIcon />}
+            label={`Data Source: ${dataSource}`}
+            color={dataSource.includes('World Bank') ? 'success' : 'warning'}
+            variant="outlined"
+          />
+          <Button
+            size="small"
+            startIcon={<RefreshIcon />}
+            onClick={handleRefresh}
+            disabled={loading}
+            sx={{ ml: 'auto' }}
+          >
+            Refresh Data
+          </Button>
+        </Box>
+      )}
+
       {/* Hero Section */}
       <Paper
         elevation={0}
@@ -244,56 +318,72 @@ const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
 
       {/* Dashboard Stats */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        {dashboardStats.map((stat, index) => (
-          <Grid item xs={12} sm={6} md={3} key={index}>
-            <Card
-              elevation={0}
-              sx={{
-                height: '100%',
-                background: 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
-                border: `1px solid ${colorPalette.neutral[200]}`,
-                borderRadius: 3,
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  transform: 'translateY(-4px)',
-                  boxShadow: getBoxShadow('high'),
-                  borderColor: stat.color,
-                },
-              }}
-            >
-              <CardContent sx={{ p: 3 }}>
+        {loading ? (
+          // Loading skeletons
+          Array.from({ length: 4 }).map((_, index) => (
+            <Grid item xs={12} sm={6} md={3} key={index}>
+              <Card elevation={0} sx={{ height: '100%', p: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                  <Avatar
-                    sx={{
-                      backgroundColor: `${stat.color}15`,
-                      color: stat.color,
-                      width: 48,
-                      height: 48,
-                    }}
-                  >
-                    {stat.icon}
-                  </Avatar>
-                  <Chip
-                    label={stat.change}
-                    size="small"
-                    icon={stat.trend === 'up' ? <TrendingUpIcon /> : <TrendingDownIcon />}
-                    sx={{
-                      backgroundColor: stat.trend === 'up' ? `${colorPalette.accent.success}15` : `${colorPalette.accent.error}15`,
-                      color: stat.trend === 'up' ? colorPalette.accent.success : colorPalette.accent.error,
-                      fontWeight: 600,
-                    }}
-                  />
+                  <Skeleton variant="circular" width={48} height={48} />
+                  <Skeleton variant="rectangular" width={60} height={24} sx={{ borderRadius: 1 }} />
                 </Box>
-                <Typography variant="h4" sx={{ fontWeight: 700, color: colorPalette.primary.main, mb: 1 }}>
-                  {stat.value}
-                </Typography>
-                <Typography variant="body2" sx={{ color: colorPalette.neutral[600] }}>
-                  {stat.title}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
+                <Skeleton variant="text" sx={{ fontSize: '2rem', mb: 1 }} />
+                <Skeleton variant="text" />
+              </Card>
+            </Grid>
+          ))
+        ) : (
+          displayStats.map((stat, index) => (
+            <Grid item xs={12} sm={6} md={3} key={index}>
+              <Card
+                elevation={0}
+                sx={{
+                  height: '100%',
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
+                  border: `1px solid ${colorPalette.neutral[200]}`,
+                  borderRadius: 3,
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: getBoxShadow('high'),
+                    borderColor: stat.color,
+                  },
+                }}
+              >
+                <CardContent sx={{ p: 3 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                    <Avatar
+                      sx={{
+                        backgroundColor: `${stat.color}15`,
+                        color: stat.color,
+                        width: 48,
+                        height: 48,
+                      }}
+                    >
+                      {stat.icon}
+                    </Avatar>
+                    <Chip
+                      label={stat.change}
+                      size="small"
+                      icon={stat.trend === 'up' ? <TrendingUpIcon /> : <TrendingDownIcon />}
+                      sx={{
+                        backgroundColor: stat.trend === 'up' ? `${colorPalette.accent.success}15` : `${colorPalette.accent.error}15`,
+                        color: stat.trend === 'up' ? colorPalette.accent.success : colorPalette.accent.error,
+                        fontWeight: 600,
+                      }}
+                    />
+                  </Box>
+                  <Typography variant="h4" sx={{ fontWeight: 700, color: colorPalette.primary.main, mb: 1 }}>
+                    {stat.value}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: colorPalette.neutral[600] }}>
+                    {stat.title}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))
+        )}
       </Grid>
 
       <Grid container spacing={4}>
@@ -437,43 +527,66 @@ const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
                 </Typography>
               </Box>
               <List sx={{ p: 0 }}>
-                {recentActivities.map((activity, index) => (
-                  <React.Fragment key={index}>
-                    <ListItem sx={{ px: 0, py: 2, alignItems: 'flex-start' }}>
-                      <ListItemIcon sx={{ minWidth: 40, mt: 0.5 }}>
-                        <Avatar
-                          sx={{
-                            width: 32,
-                            height: 32,
-                            backgroundColor: `${colorPalette.accent.info}15`,
-                            color: colorPalette.accent.info,
+                {loading ? (
+                  // Loading skeletons for activities
+                  Array.from({ length: 4 }).map((_, index) => (
+                    <React.Fragment key={index}>
+                      <ListItem sx={{ px: 0, py: 2, alignItems: 'flex-start' }}>
+                        <ListItemIcon sx={{ minWidth: 40, mt: 0.5 }}>
+                          <Skeleton variant="circular" width={32} height={32} />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={<Skeleton variant="text" width="80%" />}
+                          secondary={
+                            <Box>
+                              <Skeleton variant="text" width="100%" />
+                              <Skeleton variant="text" width="40%" />
+                            </Box>
+                          }
+                        />
+                      </ListItem>
+                      {index < 3 && <Divider />}
+                    </React.Fragment>
+                  ))
+                ) : (
+                  recentActivities.map((activity, index) => (
+                    <React.Fragment key={index}>
+                      <ListItem sx={{ px: 0, py: 2, alignItems: 'flex-start' }}>
+                        <ListItemIcon sx={{ minWidth: 40, mt: 0.5 }}>
+                          <Avatar
+                            sx={{
+                              width: 32,
+                              height: 32,
+                              backgroundColor: `${colorPalette.accent.info}15`,
+                              color: colorPalette.accent.info,
+                            }}
+                          >
+                            {getIconComponent(activity.icon)}
+                          </Avatar>
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={activity.title}
+                          secondary={
+                            <Box>
+                              <Typography variant="body2" sx={{ color: colorPalette.neutral[600], mb: 0.5 }}>
+                                {activity.description}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: colorPalette.neutral[500] }}>
+                                {activity.time}
+                              </Typography>
+                            </Box>
+                          }
+                          primaryTypographyProps={{
+                            fontWeight: 500,
+                            fontSize: '0.9rem',
+                            color: colorPalette.primary.main,
                           }}
-                        >
-                          {activity.icon}
-                        </Avatar>
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={activity.title}
-                        secondary={
-                          <Box>
-                            <Typography variant="body2" sx={{ color: colorPalette.neutral[600], mb: 0.5 }}>
-                              {activity.description}
-                            </Typography>
-                            <Typography variant="caption" sx={{ color: colorPalette.neutral[500] }}>
-                              {activity.time}
-                            </Typography>
-                          </Box>
-                        }
-                        primaryTypographyProps={{
-                          fontWeight: 500,
-                          fontSize: '0.9rem',
-                          color: colorPalette.primary.main,
-                        }}
-                      />
-                    </ListItem>
-                    {index < recentActivities.length - 1 && <Divider />}
-                  </React.Fragment>
-                ))}
+                        />
+                      </ListItem>
+                      {index < recentActivities.length - 1 && <Divider />}
+                    </React.Fragment>
+                  ))
+                )}
               </List>
             </CardContent>
           </Card>
@@ -491,77 +604,96 @@ const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
                 Performance Metrics
               </Typography>
               
-              <Box sx={{ mb: 3 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography variant="body2" sx={{ color: colorPalette.neutral[600] }}>
-                    Lead Conversion Rate
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600, color: colorPalette.primary.main }}>
-                    68%
-                  </Typography>
-                </Box>
-                <LinearProgress
-                  variant="determinate"
-                  value={68}
-                  sx={{
-                    height: 8,
-                    borderRadius: 4,
-                    backgroundColor: colorPalette.neutral[200],
-                    '& .MuiLinearProgress-bar': {
-                      backgroundColor: colorPalette.accent.success,
-                      borderRadius: 4,
-                    },
-                  }}
-                />
-              </Box>
+              {loading ? (
+                // Loading skeletons for performance metrics
+                Array.from({ length: 3 }).map((_, index) => (
+                  <Box key={index} sx={{ mb: index < 2 ? 3 : 0 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                      <Skeleton variant="text" width="60%" />
+                      <Skeleton variant="text" width="20%" />
+                    </Box>
+                    <Skeleton variant="rectangular" height={8} sx={{ borderRadius: 4 }} />
+                  </Box>
+                ))
+              ) : performanceMetrics ? (
+                <>
+                  <Box sx={{ mb: 3 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography variant="body2" sx={{ color: colorPalette.neutral[600] }}>
+                        Lead Conversion Rate
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: colorPalette.primary.main }}>
+                        {Math.round(performanceMetrics.leadConversionRate)}%
+                      </Typography>
+                    </Box>
+                    <LinearProgress
+                      variant="determinate"
+                      value={performanceMetrics.leadConversionRate}
+                      sx={{
+                        height: 8,
+                        borderRadius: 4,
+                        backgroundColor: colorPalette.neutral[200],
+                        '& .MuiLinearProgress-bar': {
+                          backgroundColor: colorPalette.accent.success,
+                          borderRadius: 4,
+                        },
+                      }}
+                    />
+                  </Box>
 
-              <Box sx={{ mb: 3 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography variant="body2" sx={{ color: colorPalette.neutral[600] }}>
-                    Market Coverage
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600, color: colorPalette.primary.main }}>
-                    85%
-                  </Typography>
-                </Box>
-                <LinearProgress
-                  variant="determinate"
-                  value={85}
-                  sx={{
-                    height: 8,
-                    borderRadius: 4,
-                    backgroundColor: colorPalette.neutral[200],
-                    '& .MuiLinearProgress-bar': {
-                      backgroundColor: colorPalette.accent.export,
-                      borderRadius: 4,
-                    },
-                  }}
-                />
-              </Box>
+                  <Box sx={{ mb: 3 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography variant="body2" sx={{ color: colorPalette.neutral[600] }}>
+                        Market Coverage
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: colorPalette.primary.main }}>
+                        {Math.round(performanceMetrics.marketCoverage)}%
+                      </Typography>
+                    </Box>
+                    <LinearProgress
+                      variant="determinate"
+                      value={performanceMetrics.marketCoverage}
+                      sx={{
+                        height: 8,
+                        borderRadius: 4,
+                        backgroundColor: colorPalette.neutral[200],
+                        '& .MuiLinearProgress-bar': {
+                          backgroundColor: colorPalette.accent.export,
+                          borderRadius: 4,
+                        },
+                      }}
+                    />
+                  </Box>
 
-              <Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography variant="body2" sx={{ color: colorPalette.neutral[600] }}>
-                    Compliance Score
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600, color: colorPalette.primary.main }}>
-                    94%
-                  </Typography>
-                </Box>
-                <LinearProgress
-                  variant="determinate"
-                  value={94}
-                  sx={{
-                    height: 8,
-                    borderRadius: 4,
-                    backgroundColor: colorPalette.neutral[200],
-                    '& .MuiLinearProgress-bar': {
-                      backgroundColor: colorPalette.accent.warning,
-                      borderRadius: 4,
-                    },
-                  }}
-                />
-              </Box>
+                  <Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography variant="body2" sx={{ color: colorPalette.neutral[600] }}>
+                        Compliance Score
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: colorPalette.primary.main }}>
+                        {Math.round(performanceMetrics.complianceScore)}%
+                      </Typography>
+                    </Box>
+                    <LinearProgress
+                      variant="determinate"
+                      value={performanceMetrics.complianceScore}
+                      sx={{
+                        height: 8,
+                        borderRadius: 4,
+                        backgroundColor: colorPalette.neutral[200],
+                        '& .MuiLinearProgress-bar': {
+                          backgroundColor: colorPalette.accent.warning,
+                          borderRadius: 4,
+                        },
+                      }}
+                    />
+                  </Box>
+                </>
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  Performance metrics unavailable
+                </Typography>
+              )}
             </CardContent>
           </Card>
         </Grid>
