@@ -1,4 +1,4 @@
-// Google Analytics Service for ExportRight Platform
+// Google Analytics Service for ExportGuide Platform
 // Tracks user interactions and business intelligence events
 
 declare global {

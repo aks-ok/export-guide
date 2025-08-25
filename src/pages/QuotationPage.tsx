@@ -156,7 +156,7 @@ const QuotationPage: React.FC = () => {
         console.warn('Quotations table not found, checking localStorage:', error);
         
         // Check localStorage for saved quotations
-        const localQuotations = JSON.parse(localStorage.getItem('exportright_quotations') || '[]');
+        const localQuotations = JSON.parse(localStorage.getItem('exportguide_quotations') || '[]');
         
         if (localQuotations.length > 0) {
           setQuotations(localQuotations);
@@ -359,10 +359,10 @@ const QuotationPage: React.FC = () => {
       if (error) {
         console.warn('Database save failed, saving locally:', error);
         // Save to localStorage as fallback
-        const savedQuotations = JSON.parse(localStorage.getItem('exportright_quotations') || '[]');
+        const savedQuotations = JSON.parse(localStorage.getItem('exportguide_quotations') || '[]');
         const newQuotation = { ...currentQuotation, id: Date.now() };
         savedQuotations.unshift(newQuotation);
-        localStorage.setItem('exportright_quotations', JSON.stringify(savedQuotations.slice(0, 50))); // Keep last 50
+        localStorage.setItem('exportguide_quotations', JSON.stringify(savedQuotations.slice(0, 50))); // Keep last 50
         
         alert('Quotation saved locally! (Database unavailable)');
       } else {
@@ -464,14 +464,14 @@ const QuotationPage: React.FC = () => {
       <body>
         <div class="header">
           <h1>EXPORT QUOTATION</h1>
-          <h2>ExportRight Platform</h2>
+          <h2>ExportGuide Platform</h2>
         </div>
         
         <div class="company-info">
           <strong>From:</strong><br>
-          ExportRight Platform<br>
+          ExportGuide Platform<br>
           Export Solutions Provider<br>
-          Email: info@exportright.com<br>
+          Email: info@exportguide.com<br>
           Phone: +1-555-EXPORT
         </div>
         
@@ -565,9 +565,9 @@ const QuotationPage: React.FC = () => {
         },
         body: JSON.stringify({
           access_key: 'YOUR_WEB3FORMS_KEY', // You can get this free from web3forms.com
-          subject: `Quotation ${currentQuotation.quotation_number} from ExportRight`,
-          from_name: 'ExportRight Platform',
-          from_email: 'noreply@exportright.com',
+          subject: `Quotation ${currentQuotation.quotation_number} from ExportGuide`,
+          from_name: 'ExportGuide Platform',
+          from_email: 'noreply@exportguide.com',
           to: currentQuotation.customer_email,
           message: `
 Dear ${emailData.customer_name},
@@ -587,7 +587,7 @@ ${emailData.notes ? `Notes: ${emailData.notes}` : ''}
 Thank you for your interest in our products.
 
 Best regards,
-ExportRight Team
+ExportGuide Team
           `
         })
       });
@@ -605,7 +605,7 @@ ExportRight Team
       console.error('Email sending error:', error);
       
       // Fallback: Open default email client
-      const subject = encodeURIComponent(`Quotation ${currentQuotation.quotation_number} from ExportRight`);
+      const subject = encodeURIComponent(`Quotation ${currentQuotation.quotation_number} from ExportGuide`);
       const body = encodeURIComponent(`
 Dear ${currentQuotation.customer_name},
 
@@ -626,7 +626,7 @@ ${currentQuotation.notes ? `Notes: ${currentQuotation.notes}` : ''}
 Thank you for your interest in our products.
 
 Best regards,
-ExportRight Team
+ExportGuide Team
       `);
       
       const mailtoLink = `mailto:${currentQuotation.customer_email}?subject=${subject}&body=${body}`;

@@ -1,4 +1,4 @@
-# 🚀 ExportRight Deployment Guide
+# 🚀 ExportGuide Deployment Guide
 
 ## 📋 **Pre-Deployment Checklist**
 
@@ -107,10 +107,10 @@ npm run start
 aws configure
 
 # Create S3 bucket
-aws s3 mb s3://your-exportright-bucket
+aws s3 mb s3://your-exportguide-bucket
 
 # Enable static website hosting
-aws s3 website s3://your-exportright-bucket --index-document index.html --error-document error.html
+aws s3 website s3://your-exportguide-bucket --index-document index.html --error-document error.html
 ```
 
 #### **Deploy to S3**
@@ -119,10 +119,10 @@ aws s3 website s3://your-exportright-bucket --index-document index.html --error-
 npm run build
 
 # Upload to S3
-aws s3 sync build/ s3://your-exportright-bucket --delete
+aws s3 sync build/ s3://your-exportguide-bucket --delete
 
 # Set public read permissions
-aws s3api put-bucket-policy --bucket your-exportright-bucket --policy '{
+aws s3api put-bucket-policy --bucket your-exportguide-bucket --policy '{
   "Version": "2012-10-17",
   "Statement": [
     {
@@ -130,7 +130,7 @@ aws s3api put-bucket-policy --bucket your-exportright-bucket --policy '{
       "Effect": "Allow",
       "Principal": "*",
       "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::your-exportright-bucket/*"
+      "Resource": "arn:aws:s3:::your-exportguide-bucket/*"
     }
   ]
 }'
@@ -155,19 +155,19 @@ aws s3api put-bucket-policy --bucket your-exportright-bucket --policy '{
 #### **Build Docker Image**
 ```bash
 # Build the image
-docker build -t exportright .
+docker build -t exportguide .
 
 # Run locally to test
-docker run -p 80:80 exportright
+docker run -p 80:80 exportguide
 ```
 
 #### **Deploy to Cloud**
 ```bash
 # Tag for registry
-docker tag exportright your-registry/exportright:latest
+docker tag exportguide your-registry/exportguide:latest
 
 # Push to registry
-docker push your-registry/exportright:latest
+docker push your-registry/exportguide:latest
 
 # Deploy to your cloud provider
 ```
@@ -191,7 +191,7 @@ docker push your-registry/exportright:latest
 2. Add to package.json:
    ```json
    {
-     "homepage": "https://yourusername.github.io/exportright",
+     "homepage": "https://yourusername.github.io/exportguide",
      "scripts": {
        "predeploy": "npm run build",
        "deploy": "gh-pages -d build"
@@ -429,8 +429,8 @@ After successful deployment:
 2. ✅ **Set up monitoring** and analytics
 3. ✅ **Configure backups** and disaster recovery
 4. ✅ **Document** your deployment process
-5. ✅ **Share** your ExportRight platform with users!
+5. ✅ **Share** your ExportGuide platform with users!
 
 ---
 
-**Your ExportRight platform is now ready for the world! 🚀**
+**Your ExportGuide platform is now ready for the world! 🚀**

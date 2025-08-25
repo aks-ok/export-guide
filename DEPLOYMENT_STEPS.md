@@ -1,7 +1,7 @@
-# 🚀 **ExportRight Deployment - Step by Step Guide**
+# 🚀 **ExportGuide Deployment - Step by Step Guide**
 
 ## ✅ **Backup Created Successfully!**
-Your project backup is saved in: `backups/ExportRight_Backup_2025-08-23_22-01-02.zip`
+Your project backup is saved in: `backups/ExportGuide_Backup_2025-08-23_22-01-02.zip`
 
 ---
 
@@ -32,10 +32,10 @@ npm start
 # Initialize git (if not done)
 git init
 git add .
-git commit -m "Initial commit - ExportRight platform ready for deployment"
+git commit -m "Initial commit - ExportGuide platform ready for deployment"
 
 # Create GitHub repository and push
-git remote add origin https://github.com/yourusername/exportright.git
+git remote add origin https://github.com/yourusername/exportguide.git
 git branch -M main
 git push -u origin main
 ```
@@ -82,7 +82,7 @@ vercel --prod
 ### **Step 1: Create Supabase Project**
 1. Go to [supabase.com](https://supabase.com)
 2. Click **"New Project"**
-3. Choose organization and project name: **"ExportRight"**
+3. Choose organization and project name: **"ExportGuide"**
 4. Set database password (save it securely!)
 5. Choose region closest to your users
 6. Click **"Create new project"**
@@ -202,7 +202,7 @@ cp .env.example .env
 
 ### **Add Custom Domain:**
 1. Go to Vercel project **Settings** → **Domains**
-2. Add your domain (e.g., `exportright.com`)
+2. Add your domain (e.g., `exportguide.com`)
 3. Configure DNS records as shown
 4. SSL certificate is automatic
 
@@ -270,7 +270,7 @@ After successful deployment, you should have:
 
 ## 🏆 **Congratulations!**
 
-Your **ExportRight platform** is now live and ready to help businesses with:
+Your **ExportGuide platform** is now live and ready to help businesses with:
 
 - 🔍 **Export lead generation**
 - 🌍 **Market research and analysis**

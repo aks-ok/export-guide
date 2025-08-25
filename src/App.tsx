@@ -5,7 +5,7 @@ import {
   CssBaseline,
   ThemeProvider
 } from '@mui/material';
-import { exportRightTheme } from './theme/ExportRightTheme';
+import { exportGuideTheme } from './theme/ExportGuideTheme';
 import EnhancedNavigation from './components/EnhancedNavigation';
 import EnhancedHomePage from './components/EnhancedHomePage';
 import BuyerDiscoveryPage from './pages/BuyerDiscoveryPage';
@@ -30,7 +30,7 @@ function App() {
 
   const getPageTitle = (page: string): string => {
     const titles: { [key: string]: string } = {
-      'home': 'ExportRight - Home',
+      'home': 'ExportGuide - Home',
       'lead-generation': 'Lead Generation',
       'buyer-discovery': 'Buyer Discovery',
       'market-research': 'Market Research',
@@ -40,7 +40,7 @@ function App() {
       'free-api-demo': 'Free API Demo',
       'enhanced-api-demo': 'Enhanced API Demo'
     };
-    return titles[page] || 'ExportRight';
+    return titles[page] || 'ExportGuide';
   };
 
   const renderPage = () => {
@@ -67,7 +67,7 @@ function App() {
   };
 
   return (
-    <ThemeProvider theme={exportRightTheme}>
+    <ThemeProvider theme={exportGuideTheme}>
       <CssBaseline />
       <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <EnhancedNavigation 

@@ -1,0 +1,35 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/static/(.*)",
+      "headers": {
+        "cache-control": "s-maxage=31536000,immutable"
+      }
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "env": {
+    "REACT_APP_SUPABASE_URL": "@supabase_url",
+    "REACT_APP_SUPABASE_ANON_KEY": "@supabase_anon_key",
+    "REACT_APP_COMTRADE_PRIMARY_KEY": "@comtrade_primary_key",
+    "REACT_APP_COMTRADE_SECONDARY_KEY": "@comtrade_secondary_key",
+    "REACT_APP_MCA_APP_NAME": "@mca_app_name",
+    "REACT_APP_MCA_APP_ID": "@mca_app_id",
+    "REACT_APP_MCA_APP_SECRET": "@mca_app_secret",
+    "REACT_APP_MCA_API_TOKEN": "@mca_api_token",
+    "REACT_APP_GA_TRACKING_ID": "@ga_tracking_id"
+  }
+}

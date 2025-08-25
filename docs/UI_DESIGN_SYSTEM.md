@@ -1,7 +1,7 @@
-# 🎨 ExportRight UI Design System
+# 🎨 ExportGuide UI Design System
 
 ## Overview
-ExportRight features a sophisticated, professional UI design system centered around the color **#484848** with carefully selected complementary colors, premium typography, and modern design patterns.
+ExportGuide features a sophisticated, professional UI design system centered around the color **#484848** with carefully selected complementary colors, premium typography, and modern design patterns.
 
 ---
 

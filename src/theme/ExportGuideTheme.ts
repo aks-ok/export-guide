@@ -327,7 +327,7 @@ const components = {
 };
 
 // Create the theme
-export const exportRightTheme = createTheme({
+export const exportGuideTheme = createTheme({
   palette: {
     primary: colorPalette.primary,
     secondary: colorPalette.secondary,

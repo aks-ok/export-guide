@@ -1,7 +1,7 @@
 {
-  "name": "export-research-lead-gen",
+  "name": "export-guide",
   "version": "1.0.0",
-  "description": "Export research and lead generation system for international trade compliance and market analysis",
+  "description": "Export guide system for international trade compliance and market analysis",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.10.5",
@@ -61,11 +61,11 @@
     "export",
     "compliance",
     "trade",
-    "lead-generation",
+    "guide",
     "market-research",
     "international-trade"
   ],
-  "author": "ExportRight Team",
+  "author": "ExportGuide Team",
   "license": "MIT",
   "homepage": "."
 }

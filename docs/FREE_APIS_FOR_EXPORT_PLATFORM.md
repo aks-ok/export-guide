@@ -1,7 +1,7 @@
 # 🆓 FREE APIs for Export Platform - Initial Stage Implementation
 
 ## Overview
-This comprehensive list covers **100% FREE APIs** that you can integrate immediately to enhance your ExportRight platform without any upfront costs. Perfect for initial stage development and MVP validation.
+This comprehensive list covers **100% FREE APIs** that you can integrate immediately to enhance your ExportGuide platform without any upfront costs. Perfect for initial stage development and MVP validation.
 
 ---
 

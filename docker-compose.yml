@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  exportright:
+  exportguide:
     build: .
     ports:
       - "80:80"
@@ -15,13 +15,13 @@ services:
       retries: 3
       start_period: 40s
     networks:
-      - exportright-network
+      - exportguide-network
 
   # Optional: PostgreSQL for local development
   postgres:
     image: postgres:15-alpine
     environment:
-      POSTGRES_DB: exportright
+      POSTGRES_DB: exportguide
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
@@ -30,7 +30,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./migrations:/docker-entrypoint-initdb.d
     networks:
-      - exportright-network
+      - exportguide-network
     profiles:
       - local
 
@@ -42,7 +42,7 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - exportright-network
+      - exportguide-network
     profiles:
       - local
 
@@ -62,7 +62,7 @@ services:
       - '--storage.tsdb.retention.time=200h'
       - '--web.enable-lifecycle'
     networks:
-      - exportright-network
+      - exportguide-network
     profiles:
       - monitoring
 
@@ -79,7 +79,7 @@ services:
       - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
       - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
     networks:
-      - exportright-network
+      - exportguide-network
     profiles:
       - monitoring
 
@@ -90,5 +90,5 @@ volumes:
   grafana_data:
 
 networks:
-  exportright-network:
+  exportguide-network:
     driver: bridge

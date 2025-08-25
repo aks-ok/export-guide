@@ -40,7 +40,7 @@ import {
   Api as ApiIcon
 } from '@mui/icons-material';
 import { enhancedAPIService } from '../services/EnhancedAPIService';
-import { colorPalette, getGradientBackground } from '../theme/ExportRightTheme';
+import { colorPalette, getGradientBackground } from '../theme/ExportGuideTheme';
 
 const EnhancedAPIDemo: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);

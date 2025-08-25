@@ -36,7 +36,7 @@ import {
   AccountBalance as BankIcon,
   Speed as SpeedIcon,
 } from '@mui/icons-material';
-import { colorPalette, getGradientBackground, getBoxShadow } from '../theme/ExportRightTheme';
+import { colorPalette, getGradientBackground, getBoxShadow } from '../theme/ExportGuideTheme';
 
 interface EnhancedHomePageProps {
   onNavigate: (page: string) => void;
@@ -189,7 +189,7 @@ const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
                 WebkitTextFillColor: 'transparent',
               }}
             >
-              Welcome to ExportRight
+              Welcome to ExportGuide
             </Typography>
             <Typography variant="h6" sx={{ mb: 3, opacity: 0.9, fontWeight: 400, color: 'white' }}>
               Advanced business intelligence tools including dashboards, reporting, and analytics tailored to export markets.

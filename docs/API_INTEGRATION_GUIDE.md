@@ -1,7 +1,7 @@
-# 🌐 Complete API Integration Guide for ExportRight
+# 🌐 Complete API Integration Guide for ExportGuide
 
 ## Overview
-This guide covers all APIs and credentials needed to make ExportRight a complete digital export platform, including Indian government APIs, international trade data, and business intelligence services.
+This guide covers all APIs and credentials needed to make ExportGuide a complete digital export platform, including Indian government APIs, international trade data, and business intelligence services.
 
 ---
 
@@ -362,4 +362,4 @@ export class TradeDataService {
 - **TradeIndia**: https://www.tradeindia.com/
 - **ExportersIndia**: https://www.exportersindia.com/
 
-This comprehensive integration will transform your ExportRight platform into a complete digital export ecosystem! 🚀
+This comprehensive integration will transform your ExportGuide platform into a complete digital export ecosystem! 🚀

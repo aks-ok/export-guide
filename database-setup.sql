@@ -1,4 +1,4 @@
--- ExportRight Database Setup
+-- ExportGuide Database Setup
 -- Run these commands in your Supabase SQL editor
 
 -- Create export_opportunities table

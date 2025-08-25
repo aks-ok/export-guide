@@ -1,6 +1,6 @@
-# ExportRight - Export Research Lead Generation System
+# ExportGuide - Export Guide System
 
-[![CI/CD Pipeline](https://github.com/your-org/export-research-lead-gen/workflows/CI/CD%20Pipeline/badge.svg)](https://github.com/your-org/export-research-lead-gen/actions)
+[![CI/CD Pipeline](https://github.com/your-org/export-guide/workflows/CI/CD%20Pipeline/badge.svg)](https://github.com/your-org/export-guide/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-4.9.4-blue.svg)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18.2.0-blue.svg)](https://reactjs.org/)
@@ -11,8 +11,8 @@ A comprehensive export research and lead generation system designed to help busi
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/export-research-lead-gen.git
-cd export-research-lead-gen
+git clone https://github.com/your-org/export-guide.git
+cd export-guide
 
 # Install dependencies
 npm install
@@ -218,8 +218,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🆘 Support
 
 - **Documentation**: Check the [docs/](docs/) directory
-- **Issues**: [Create a GitHub issue](https://github.com/your-org/export-research-lead-gen/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-org/export-research-lead-gen/discussions)
+- **Issues**: [Create a GitHub issue](https://github.com/your-org/export-guide/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-org/export-guide/discussions)
 
 ## 🙏 Acknowledgments
 

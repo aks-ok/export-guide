@@ -38,7 +38,7 @@ import {
   Logout as LogoutIcon,
   Api as ApiIcon,
 } from '@mui/icons-material';
-import { colorPalette, getGradientBackground } from '../theme/ExportRightTheme';
+import { colorPalette, getGradientBackground } from '../theme/ExportGuideTheme';
 
 interface NavigationProps {
   currentPage: string;
@@ -175,7 +175,7 @@ const EnhancedNavigation: React.FC<NavigationProps> = ({ currentPage, onPageChan
                   WebkitTextFillColor: 'transparent',
                 }}
               >
-                ExportRight
+                ExportGuide
               </Typography>
             </Box>
           </Box>
@@ -287,7 +287,7 @@ const EnhancedNavigation: React.FC<NavigationProps> = ({ currentPage, onPageChan
                 letterSpacing: '-0.5px',
               }}
             >
-              ExportRight
+              ExportGuide
             </Typography>
           </Box>
         </Box>
@@ -383,7 +383,7 @@ const EnhancedNavigation: React.FC<NavigationProps> = ({ currentPage, onPageChan
             Export Manager
           </Typography>
           <Typography variant="body2" sx={{ color: colorPalette.neutral[600] }}>
-            manager@exportright.com
+            manager@exportguide.com
           </Typography>
         </Box>
         

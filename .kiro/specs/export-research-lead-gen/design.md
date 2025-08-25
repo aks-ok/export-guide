@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Export Research and Lead Generation application will be built as an extension of the existing ExportRight platform, leveraging the current React/TypeScript/Material-UI stack with Supabase backend. The system will integrate export compliance checking, market research capabilities, and enhanced lead generation tools while maintaining the existing sales funnel workflow.
+The Export Guide application will be built as an extension of the existing ExportGuide platform, leveraging the current React/TypeScript/Material-UI stack with Supabase backend. The system will integrate export compliance checking, market research capabilities, and enhanced lead generation tools while maintaining the existing sales funnel workflow.
 
 ## Architecture
 
