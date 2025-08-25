@@ -64,7 +64,9 @@
   - Verify export compliance page renders correctly
   - _Requirements: 1.1, 1.2, 4.1_
 
-- [-] 8. Fix SimpleLeadGenerationPage.tsx unused import
+- [x] 8. Fix SimpleLeadGenerationPage.tsx unused import
+
+
 
   - Remove unused `PhoneIcon` import from @mui/icons-material
   - Test lead generation page functionality
