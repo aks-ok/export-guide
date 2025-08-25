@@ -1,19 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
   Card,
   CardContent,
-  TextField,
   Button,
   Grid,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
   Chip,
   Alert,
   CircularProgress,
@@ -23,7 +15,6 @@ import {
   MenuItem,
   Divider,
   Avatar,
-  IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -74,7 +65,6 @@ interface BuyerSearch {
 
 const BuyerDiscoveryPage: React.FC = () => {
   const [buyers, setBuyers] = useState<Buyer[]>([]);
-  const [loading, setLoading] = useState(false);
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedBuyer, setSelectedBuyer] = useState<Buyer | null>(null);

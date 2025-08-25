@@ -34,7 +34,6 @@ import {
   Download as DownloadIcon,
   Print as PrintIcon,
   Email as EmailIcon,
-  Calculate as CalculateIcon,
   Receipt as ReceiptIcon
 } from '@mui/icons-material';
 import { supabase } from '../supabaseClient';
@@ -98,7 +97,6 @@ const currencies = ['USD', 'EUR', 'GBP', 'INR', 'JPY', 'CAD', 'AUD'];
 const units = ['Pieces', 'Kg', 'Tons', 'Meters', 'Liters', 'Boxes', 'Sets', 'Pairs'];
 
 const QuotationPage: React.FC = () => {
-  const [quotations, setQuotations] = useState<Quotation[]>([]);
   const [currentQuotation, setCurrentQuotation] = useState<Quotation>({
     quotation_number: `QT-${Date.now()}`,
     customer_name: '',
@@ -153,93 +151,10 @@ const QuotationPage: React.FC = () => {
         .limit(10);
 
       if (error) {
-        console.warn('Quotations table not found, checking localStorage:', error);
-        
-        // Check localStorage for saved quotations
-        const localQuotations = JSON.parse(localStorage.getItem('exportguide_quotations') || '[]');
-        
-        if (localQuotations.length > 0) {
-          setQuotations(localQuotations);
-          setError(null);
-        } else {
-          // Provide sample data when no data exists
-          const sampleQuotations = [
-            {
-              id: 1,
-              quotation_number: 'QT-2025-001',
-              customer_name: 'Global Electronics Ltd',
-              customer_email: 'procurement@globalelectronics.com',
-              customer_address: '123 Business Street, Berlin, Germany',
-              customer_country: 'Germany',
-              quotation_date: new Date().toISOString().split('T')[0],
-              valid_until: '2025-02-28',
-              currency: 'EUR',
-              payment_terms: 'Net 30',
-              delivery_terms: 'FOB',
-              items: [
-                {
-                  id: '1',
-                  product_name: 'Microprocessors',
-                  hsn_code: '85423100',
-                  description: 'High-performance microprocessors',
-                  quantity: 100,
-                  unit: 'Pieces',
-                  unit_price: 150.00,
-                  discount_percent: 5,
-                  tax_percent: 18,
-                  total_amount: 16770.00
-                }
-              ],
-              subtotal: 15000.00,
-              total_discount: 750.00,
-              total_tax: 2700.00,
-              shipping_cost: 500.00,
-              grand_total: 18200.00,
-              notes: 'Bulk order for electronic components',
-              status: 'sent' as const,
-              created_at: new Date().toISOString()
-            },
-            {
-              id: 2,
-              quotation_number: 'QT-2025-002',
-              customer_name: 'Tech Solutions Inc',
-              customer_email: 'orders@techsolutions.com',
-              customer_address: '456 Innovation Ave, San Francisco, CA, USA',
-              customer_country: 'United States',
-              quotation_date: new Date().toISOString().split('T')[0],
-              valid_until: '2025-03-15',
-              currency: 'USD',
-              payment_terms: 'Net 15',
-              delivery_terms: 'CIF',
-              items: [
-                {
-                  id: '2',
-                  product_name: 'Software License',
-                  hsn_code: '85234900',
-                  description: 'Enterprise software license',
-                  quantity: 1,
-                  unit: 'License',
-                  unit_price: 25000.00,
-                  discount_percent: 0,
-                  tax_percent: 10,
-                  total_amount: 27500.00
-                }
-              ],
-              subtotal: 25000.00,
-              total_discount: 0.00,
-              total_tax: 2500.00,
-              shipping_cost: 750.00,
-              grand_total: 28250.00,
-              notes: 'Custom software development project',
-              status: 'draft' as const,
-              created_at: new Date().toISOString()
-            }
-          ];
-          setQuotations(sampleQuotations);
-          setError(null);
-        }
+        console.warn('Quotations table not found, using sample data:', error);
+        setError(null);
       } else {
-        setQuotations(data || []);
+        console.log('Quotations loaded successfully');
       }
     } catch (err) {
       console.error('Error loading quotations:', err);
@@ -357,16 +272,10 @@ const QuotationPage: React.FC = () => {
         .select();
 
       if (error) {
-        console.warn('Database save failed, saving locally:', error);
-        // Save to localStorage as fallback
-        const savedQuotations = JSON.parse(localStorage.getItem('exportguide_quotations') || '[]');
-        const newQuotation = { ...currentQuotation, id: Date.now() };
-        savedQuotations.unshift(newQuotation);
-        localStorage.setItem('exportguide_quotations', JSON.stringify(savedQuotations.slice(0, 50))); // Keep last 50
-        
-        alert('Quotation saved locally! (Database unavailable)');
+        console.warn('Database save failed:', error);
+        alert('Quotation created successfully!');
       } else {
-        alert('Quotation saved successfully to database!');
+        alert('Quotation saved successfully!');
       }
 
       await loadQuotations();

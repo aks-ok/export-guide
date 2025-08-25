@@ -29,12 +29,7 @@ import {
   Search as SearchIcon,
   ArrowForward as ArrowForwardIcon,
   Notifications as NotificationsIcon,
-  Star as StarIcon,
-  Timeline as TimelineIcon,
-  Language as LanguageIcon,
-  LocalShipping as ShippingIcon,
-  AccountBalance as BankIcon,
-  Speed as SpeedIcon,
+
 } from '@mui/icons-material';
 import { colorPalette, getGradientBackground, getBoxShadow } from '../theme/ExportGuideTheme';
 
@@ -43,7 +38,6 @@ interface EnhancedHomePageProps {
 }
 
 const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
-  const theme = useTheme();
 
   // Mock data for dashboard
   const dashboardStats = [

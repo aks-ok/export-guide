@@ -11,18 +11,8 @@ import {
   CircularProgress,
   Tabs,
   Tab,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Paper,
   Chip,
-  Avatar,
-  List,
-  ListItem,
-  ListItemText,
   Divider,
   FormControl,
   InputLabel,
@@ -33,11 +23,8 @@ import {
   TrendingUp as TrendingUpIcon,
   AttachMoney as MoneyIcon,
   Public as PublicIcon,
-  Security as SecurityIcon,
   Business as BusinessIcon,
-  Analytics as AnalyticsIcon,
-  Flag as FlagIcon,
-  Api as ApiIcon
+  Analytics as AnalyticsIcon
 } from '@mui/icons-material';
 import { enhancedAPIService } from '../services/EnhancedAPIService';
 import { colorPalette, getGradientBackground } from '../theme/ExportGuideTheme';

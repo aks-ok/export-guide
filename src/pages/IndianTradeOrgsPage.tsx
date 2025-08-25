@@ -21,7 +21,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Link,
   Avatar,
   Divider
 } from '@mui/material';
@@ -68,7 +67,6 @@ const IndianTradeOrgsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [tradeEvents, setTradeEvents] = useState<TradeEvent[]>([]);
   const [opportunities, setOpportunities] = useState<TradeOpportunity[]>([]);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     loadMockData();
