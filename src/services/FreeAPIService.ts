@@ -1,8 +1,6 @@
 // Free API Integration Service
 // Integrates multiple free APIs to provide real data for the export platform
 
-import { matches } from "lodash";
-
 export interface TradeDataResponse {
   country: string;
   product: string;

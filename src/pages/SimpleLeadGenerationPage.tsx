@@ -27,8 +27,7 @@ import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Email as EmailIcon,
-  Phone as PhoneIcon
+  Email as EmailIcon
 } from '@mui/icons-material';
 import { supabase } from '../supabaseClient';
 

@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
   Card,
   CardContent,
-  TextField,
   Button,
   Grid,
   Table,
@@ -21,7 +20,6 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Divider,
   LinearProgress
 } from '@mui/material';
 import {
@@ -51,7 +49,6 @@ interface MarketSearch {
 
 const SimpleMarketResearchPage: React.FC = () => {
   const [opportunities, setOpportunities] = useState<MarketOpportunity[]>([]);
-  const [loading, setLoading] = useState(false);
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchData, setSearchData] = useState<MarketSearch>({
