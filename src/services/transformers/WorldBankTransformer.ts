@@ -78,9 +78,9 @@ export class WorldBankTransformer {
       totalExports: exports,
       totalImports: imports,
       tradeBalance: exports - imports,
-      topExportProducts: this.generateMockProductStats('export'),
-      topImportProducts: this.generateMockProductStats('import'),
-      tradingPartners: this.generateMockTradingPartners(),
+      topExportProducts: [], // Real product data would come from UN Comtrade API
+      topImportProducts: [], // Real product data would come from UN Comtrade API
+      tradingPartners: [], // Real partner data would come from trade statistics
       period: latestYear.toString(),
       source: 'World Bank',
       lastUpdated: new Date()
@@ -193,41 +193,7 @@ export class WorldBankTransformer {
     }
   }
 
-  private static generateMockProductStats(type: 'export' | 'import'): ProductStat[] {
-    const products = [
-      { code: '84', name: 'Machinery and mechanical appliances' },
-      { code: '85', name: 'Electrical machinery and equipment' },
-      { code: '87', name: 'Vehicles other than railway' },
-      { code: '27', name: 'Mineral fuels and oils' },
-      { code: '39', name: 'Plastics and articles thereof' }
-    ];
 
-    return products.map((product, index) => ({
-      productCode: product.code,
-      productName: product.name,
-      value: Math.floor(Math.random() * 10000000000) + 1000000000, // 1B - 10B
-      percentage: Math.round((20 - index * 3) * 10) / 10, // Decreasing percentages
-      growthRate: Math.round((Math.random() * 20 - 5) * 10) / 10 // -5% to 15%
-    }));
-  }
-
-  private static generateMockTradingPartners(): TradingPartner[] {
-    const partners = [
-      { country: 'United States', code: 'USA' },
-      { country: 'China', code: 'CHN' },
-      { country: 'Germany', code: 'DEU' },
-      { country: 'Japan', code: 'JPN' },
-      { country: 'United Kingdom', code: 'GBR' }
-    ];
-
-    return partners.map((partner, index) => ({
-      country: partner.country,
-      countryCode: partner.code,
-      tradeValue: Math.floor(Math.random() * 5000000000) + 1000000000, // 1B - 5B
-      percentage: Math.round((25 - index * 4) * 10) / 10, // Decreasing percentages
-      tradeType: Math.random() > 0.5 ? 'both' : (Math.random() > 0.5 ? 'export' : 'import') as any
-    }));
-  }
 
   /**
    * Get World Bank indicator codes for common trade metrics

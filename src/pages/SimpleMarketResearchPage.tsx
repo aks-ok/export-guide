@@ -62,6 +62,26 @@ const SimpleMarketResearchPage: React.FC = () => {
 
   const { handleApiError } = useErrorHandler();
 
+  // Generate fallback mock data when real data is unavailable
+  const generateFallbackData = (searchData: MarketSearch): MarketData[] => {
+    const fallbackCountries = ['United States', 'Germany', 'United Kingdom', 'Japan', 'Australia'];
+    
+    return fallbackCountries.map((country, index) => ({
+      id: `fallback-${index}`,
+      country,
+      countryCode: getCountryCode(country),
+      productCategory: searchData.product_category || 'General',
+      marketSize: Math.floor(Math.random() * 1000000) + 100000,
+      growthRate: Math.floor(Math.random() * 10) + 1,
+      competitionLevel: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)] as 'low' | 'medium' | 'high',
+      tariffRate: Math.floor(Math.random() * 20) + 5,
+      tradeVolume: Math.floor(Math.random() * 500000) + 50000,
+      lastUpdated: new Date(),
+      source: 'Fallback Data',
+      reliability: 'low' as 'low'
+    }));
+  };
+
   // Sample product categories
   const productCategories = [
     'Electronics', 'Machinery', 'Automotive', 'Textiles', 'Food & Beverages',
@@ -76,26 +96,11 @@ const SimpleMarketResearchPage: React.FC = () => {
   ];
 
   // Generate fallback mock data when real data is unavailable
-  const generateFallbackData = (searchData: MarketSearch): MarketData[] => {
-    const targetCountries = searchData.target_countries.length > 0 
-      ? searchData.target_countries 
-      : countries.slice(0, 6);
-
-    return targetCountries.map((country, index) => ({
-      id: `fallback_${Date.now()}_${index}`,
-      country,
-      countryCode: country.substring(0, 3).toUpperCase(),
-      productCategory: searchData.product_category,
-      marketSize: Math.floor(Math.random() * 500000000000) + 50000000000, // 50B - 550B
-      growthRate: Math.round((Math.random() * 15 + 2) * 10) / 10, // 2% - 17%
-      competitionLevel: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)] as any,
-      tariffRate: Math.round((Math.random() * 20) * 10) / 10, // 0% - 20%
-      tradeVolume: Math.floor(Math.random() * 100000000000) + 10000000000, // 10B - 110B
-      lastUpdated: new Date(),
-      source: 'Fallback Data',
-      reliability: 'low' as const
-    })).sort((a, b) => b.marketSize - a.marketSize);
-  };
+  // Real market research would integrate with:
+  // - World Bank Trade APIs
+  // - UN Comtrade database
+  // - Government trade statistics
+  // - Industry research databases
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,13 +114,9 @@ const SimpleMarketResearchPage: React.FC = () => {
       setSearching(true);
       setError(null);
 
-      // Check if real data is enabled
+      // Only use real data - no fallbacks
       if (!apiConfig.isRealDataEnabled()) {
-        // Use fallback data
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate delay
-        const fallbackData = generateFallbackData(searchData);
-        setMarketData(fallbackData);
-        setDataSource('Mock Data (Real data disabled)');
+        setError('Real data is disabled. Please enable REACT_APP_ENABLE_REAL_DATA=true');
         return;
       }
 

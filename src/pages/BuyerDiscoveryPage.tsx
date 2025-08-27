@@ -96,48 +96,11 @@ const BuyerDiscoveryPage: React.FC = () => {
     { value: 'enterprise', label: 'Enterprise (1000+ employees)' }
   ];
 
-  const generateMockBuyers = (searchData: BuyerSearch): Buyer[] => {
-    const mockBuyers: Buyer[] = [];
-    const companyNames = [
-      'Global Import Solutions', 'International Trading Co', 'Premium Buyers Ltd',
-      'Worldwide Distribution', 'Elite Import Group', 'Strategic Sourcing Inc',
-      'Advanced Trading Partners', 'Quality Import Services', 'Professional Buyers Corp',
-      'Excellence Trading House', 'Prime Import Solutions', 'Superior Trading Co'
-    ];
-
-    const contactNames = [
-      'John Smith', 'Maria Garcia', 'David Chen', 'Sarah Johnson', 'Michael Brown',
-      'Anna Mueller', 'Roberto Silva', 'Yuki Tanaka', 'Emma Wilson', 'Ahmed Hassan'
-    ];
-
-    for (let i = 0; i < 8; i++) {
-      const buyer: Buyer = {
-        id: Date.now() + i,
-        company_name: companyNames[i % companyNames.length],
-        contact_person: contactNames[i % contactNames.length],
-        email: `${contactNames[i % contactNames.length].toLowerCase().replace(' ', '.')}@${companyNames[i % companyNames.length].toLowerCase().replace(/[^a-z]/g, '')}.com`,
-        phone: `+${Math.floor(Math.random() * 90) + 10}-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`,
-        website: `www.${companyNames[i % companyNames.length].toLowerCase().replace(/[^a-z]/g, '')}.com`,
-        country: searchData.target_country || countries[Math.floor(Math.random() * countries.length)],
-        industry: searchData.product_category,
-        company_size: (searchData.company_size as any) || ['small', 'medium', 'large', 'enterprise'][Math.floor(Math.random() * 4)],
-        annual_revenue: Math.floor(Math.random() * 50000000) + 1000000, // 1M - 51M
-        products_interested: [searchData.product_category],
-        import_volume: Math.floor(Math.random() * 5000000) + 100000, // 100K - 5.1M
-        verified: Math.random() > 0.3, // 70% verified
-        rating: Math.round((Math.random() * 2 + 3) * 10) / 10, // 3.0 - 5.0
-        last_activity: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(), // Last 30 days
-        created_at: new Date().toISOString()
-      };
-      mockBuyers.push(buyer);
-    }
-
-    // Sort by rating and verification status
-    return mockBuyers.sort((a, b) => {
-      if (a.verified !== b.verified) return a.verified ? -1 : 1;
-      return b.rating - a.rating;
-    });
-  };
+  // Real buyer discovery would integrate with:
+  // - Trade databases (Kompass, D&B, etc.)
+  // - Government export promotion databases
+  // - Industry association directories
+  // - B2B marketplace APIs
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -154,9 +117,9 @@ const BuyerDiscoveryPage: React.FC = () => {
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Generate mock buyers
-      const mockBuyers = generateMockBuyers(searchData);
-      setBuyers(mockBuyers);
+      // Real implementation would call buyer discovery APIs
+      setBuyers([]);
+      setError('Buyer discovery requires integration with trade databases. Please configure API access.');
 
     } catch (err) {
       console.error('Error searching buyers:', err);
