@@ -297,7 +297,400 @@ const SimpleMarketResearchPage: React.FC = () => {
                     multiple
                     value={searchData.target_countries}
                     onChange={(e) => setSearchData({ 
-                      ...searchData, 
+                      ...searchData,
+                      target_countries: typeof e.target.value === 'string' ? 
+                        e.target.value.split(',') : 
+                        e.target.value as string[]
+                    })}
+                    label="Target Countries (Optional)"
+                    renderValue={(selected) => (
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        {(selected as string[]).map((value) => (
+                          <Chip key={value} label={value} size="small" />
+                        ))}
+                      </Box>
+                    )}
+                    MenuProps={{
+                      PaperProps: {
+                        style: {
+                          maxHeight: 224,
+                          width: 250,
+                        },
+                      },
+                    }}
+                  >
+                    {countries.map((country) => (
+                      <MenuItem key={country} value={country}>
+                        {country}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              
+              <Grid item xs={12} md={4}>
+                <Box display="flex" alignItems="flex-end" height="100%">
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    startIcon={searching ? <CircularProgress size={16} /> : <SearchIcon />}
+                    disabled={searching}
+                    fullWidth
+                    size="large"
+                    sx={{
+                      borderRadius: 2,
+                      py: 1.5,
+                      textTransform: 'none',
+                      fontSize: '1rem',
+                      fontWeight: 600,
+                    }}
+                  >
+                    {searching ? 'Searching...' : 'Search Markets'}
+                  </Button>
+                </Box>
+              </Grid>
+            </Grid>
+
+            {searching && (
+              <Box sx={{ mt: 3 }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  Analyzing market opportunities for {searchData.product_category}...
+                </Typography>
+                <LinearProgress sx={{ borderRadius: 1 }} />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                  <CircularProgress size={16} />
+                  <Typography variant="body2" color="text.secondary">
+                    Fetching data from World Bank and trade databases
+                  </Typography>
+                </Box>
+              </Box>
+            )}
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Market Research Results */}
+      {marketData.length > 0 && (
+        <Card>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+              <Typography variant="h6">
+                <AssessmentIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                Market Opportunities for {searchData.product_category}
+              </Typography>
+              <Button
+                size="small"
+                startIcon={<RefreshIcon />}
+                onClick={() => handleSearch({ preventDefault: () => {} } as any)}
+                disabled={searching}
+              >
+                Refresh Data
+              </Button>
+            </Box>
+            
+            <TableContainer component={Paper} sx={{ borderRadius: 2, border: '1px solid #e0e0e0' }}>
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                    <TableCell sx={{ fontWeight: 600 }}>Country</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Market Size</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Growth Rate</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Competition</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Tariff Rate</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Trade Volume</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Reliability</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {marketData.map((market, index) => (
+                    <TableRow 
+                      key={market.id} 
+                      sx={{ 
+                        '&:nth-of-type(odd)': { backgroundColor: '#fafafa' },
+                        '&:hover': { backgroundColor: '#f0f0f0' }
+                      }}
+                    >
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <PublicIcon fontSize="small" color="primary" />
+                          <Box>
+                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                              {market.country}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {market.countryCode}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                          {DataTransformUtils.formatLargeNumber(market.marketSize)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={`${market.growthRate.toFixed(1)}%`}
+                          color={getGrowthColor(market.growthRate) as any}
+                          size="small"
+                          icon={<TrendingUpIcon />}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={market.competitionLevel.toUpperCase()}
+                          color={getCompetitionColor(market.competitionLevel) as any}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2">
+                          {market.tariffRate.toFixed(1)}%
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2">
+                          {DataTransformUtils.formatLargeNumber(market.tradeVolume)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={market.reliability.toUpperCase()}
+                          color={getReliabilityColor(market.reliability) as any}
+                          size="small"
+                          variant="outlined"
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            <Alert severity="info" sx={{ mt: 3 }}>
+              <Typography variant="body2">
+                <strong>Market Intelligence:</strong> Data includes market size, growth projections, 
+                competition analysis, and trade barriers. Use this information to prioritize your export markets.
+              </Typography>
+            </Alert>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Empty State */}
+      {marketData.length === 0 && !searching && (
+        <Card>
+          <CardContent sx={{ textAlign: 'center', py: 6 }}>
+            <AssessmentIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+            <Typography variant="h6" color="text.secondary" gutterBottom>
+              Discover Market Opportunities
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 400, mx: 'auto' }}>
+              Select your product category to analyze global market opportunities, 
+              growth trends, and competitive landscapes across different countries.
+            </Typography>
+          </CardContent>
+        </Card>
+      )}
+    </Box>
+  );
+};
+
+export default SimpleMarketResearchPage;
+                      target_countries: typeof e.target.value === 'string' ? 
+                        e.target.value.split(',') : 
+                        e.target.value as string[]
+                    })}
+                    label="Target Countries (Optional)"
+                    renderValue={(selected) => (
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        {(selected as string[]).map((value) => (
+                          <Chip key={value} label={value} size="small" />
+                        ))}
+                      </Box>
+                    )}
+                    MenuProps={{
+                      PaperProps: {
+                        style: {
+                          maxHeight: 224,
+                          width: 250,
+                        },
+                      },
+                    }}
+                  >
+                    {countries.map((country) => (
+                      <MenuItem key={country} value={country}>
+                        {country}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              
+              <Grid item xs={12} md={4}>
+                <Box display="flex" alignItems="flex-end" height="100%">
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    startIcon={searching ? <CircularProgress size={16} /> : <SearchIcon />}
+                    disabled={searching}
+                    fullWidth
+                    size="large"
+                    sx={{
+                      borderRadius: 2,
+                      py: 1.5,
+                      textTransform: 'none',
+                      fontSize: '1rem',
+                      fontWeight: 600,
+                    }}
+                  >
+                    {searching ? 'Searching...' : 'Search Markets'}
+                  </Button>
+                </Box>
+              </Grid>
+            </Grid>
+
+            {searching && (
+              <Box sx={{ mt: 3 }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  Analyzing market opportunities for {searchData.product_category}...
+                </Typography>
+                <LinearProgress sx={{ borderRadius: 1 }} />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                  <CircularProgress size={16} />
+                  <Typography variant="body2" color="text.secondary">
+                    Fetching data from World Bank and trade databases
+                  </Typography>
+                </Box>
+              </Box>
+            )}
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Market Research Results */}
+      {marketData.length > 0 && (
+        <Card>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+              <Typography variant="h6">
+                <AssessmentIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                Market Opportunities for {searchData.product_category}
+              </Typography>
+              <Button
+                size="small"
+                startIcon={<RefreshIcon />}
+                onClick={() => handleSearch({ preventDefault: () => {} } as any)}
+                disabled={searching}
+              >
+                Refresh Data
+              </Button>
+            </Box>
+            
+            <TableContainer component={Paper} sx={{ borderRadius: 2, border: '1px solid #e0e0e0' }}>
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                    <TableCell sx={{ fontWeight: 600 }}>Country</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Market Size</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Growth Rate</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Competition</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Tariff Rate</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Trade Volume</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Reliability</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {marketData.map((market, index) => (
+                    <TableRow 
+                      key={market.id} 
+                      sx={{ 
+                        '&:nth-of-type(odd)': { backgroundColor: '#fafafa' },
+                        '&:hover': { backgroundColor: '#f0f0f0' }
+                      }}
+                    >
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <PublicIcon fontSize="small" color="primary" />
+                          <Box>
+                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                              {market.country}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {market.countryCode}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                          {DataTransformUtils.formatLargeNumber(market.marketSize)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={`${market.growthRate.toFixed(1)}%`}
+                          color={getGrowthColor(market.growthRate) as any}
+                          size="small"
+                          icon={<TrendingUpIcon />}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={market.competitionLevel.toUpperCase()}
+                          color={getCompetitionColor(market.competitionLevel) as any}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2">
+                          {market.tariffRate.toFixed(1)}%
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2">
+                          {DataTransformUtils.formatLargeNumber(market.tradeVolume)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={market.reliability.toUpperCase()}
+                          color={getReliabilityColor(market.reliability) as any}
+                          size="small"
+                          variant="outlined"
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            <Alert severity="info" sx={{ mt: 3 }}>
+              <Typography variant="body2">
+                <strong>Market Intelligence:</strong> Data includes market size, growth projections, 
+                competition analysis, and trade barriers. Use this information to prioritize your export markets.
+              </Typography>
+            </Alert>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Empty State */}
+      {marketData.length === 0 && !searching && (
+        <Card>
+          <CardContent sx={{ textAlign: 'center', py: 6 }}>
+            <AssessmentIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+            <Typography variant="h6" color="text.secondary" gutterBottom>
+              Discover Market Opportunities
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 400, mx: 'auto' }}>
+              Select your product category to analyze global market opportunities, 
+              growth trends, and competitive landscapes across different countries.
+            </Typography>
+          </CardContent>
+        </Card>
+      )} 
                       target_countries: typeof e.target.value === 'string' 
                         ? e.target.value.split(',') 
                         : e.target.value 

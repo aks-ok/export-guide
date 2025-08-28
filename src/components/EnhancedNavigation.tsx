@@ -39,6 +39,7 @@ import {
   Api as ApiIcon,
 } from '@mui/icons-material';
 import { colorPalette, getGradientBackground } from '../theme/ExportGuideTheme';
+import { useAuth } from '../contexts/AuthContext';
 
 interface NavigationProps {
   currentPage: string;
@@ -48,6 +49,7 @@ interface NavigationProps {
 const EnhancedNavigation: React.FC<NavigationProps> = ({ currentPage, onPageChange }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { user, signOut } = useAuth();
   
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [notificationAnchor, setNotificationAnchor] = useState<null | HTMLElement>(null);
@@ -89,6 +91,33 @@ const EnhancedNavigation: React.FC<NavigationProps> = ({ currentPage, onPageChan
 
   const handleDrawerToggle = () => {
     setMobileDrawerOpen(!mobileDrawerOpen);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      handleProfileMenuClose();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  // Get user display name and initials
+  const getUserDisplayName = () => {
+    if (user?.user_metadata?.full_name) {
+      return user.user_metadata.full_name;
+    }
+    return user?.email?.split('@')[0] || 'User';
+  };
+
+  const getUserInitials = () => {
+    const name = getUserDisplayName();
+    return name
+      .split(' ')
+      .map((word: string) => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
   };
 
   const NavigationContent = () => (
@@ -253,7 +282,7 @@ const EnhancedNavigation: React.FC<NavigationProps> = ({ currentPage, onPageChan
                     fontWeight: 600,
                   }}
                 >
-                  ER
+                  {getUserInitials()}
                 </Avatar>
               </IconButton>
             </Tooltip>
@@ -380,10 +409,10 @@ const EnhancedNavigation: React.FC<NavigationProps> = ({ currentPage, onPageChan
       >
         <Box sx={{ p: 2, borderBottom: `1px solid ${colorPalette.neutral[200]}` }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 600, color: colorPalette.primary.main }}>
-            Export Manager
+            {getUserDisplayName()}
           </Typography>
           <Typography variant="body2" sx={{ color: colorPalette.neutral[600] }}>
-            manager@exportguide.com
+            {user?.email}
           </Typography>
         </Box>
         
@@ -404,7 +433,7 @@ const EnhancedNavigation: React.FC<NavigationProps> = ({ currentPage, onPageChan
         
         <Divider />
         
-        <MenuItem onClick={handleProfileMenuClose}>
+        <MenuItem onClick={handleLogout}>
           <ListItemIcon><LogoutIcon fontSize="small" /></ListItemIcon>
           <ListItemText>Logout</ListItemText>
         </MenuItem>

@@ -77,11 +77,53 @@ const SimpleLeadGenerationPage: React.FC = () => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.warn('Supabase leads table not found, using mock data:', error);
+        // Use mock data if table doesn't exist
+        const mockLeads: Lead[] = [
+          {
+            id: 1,
+            name: 'John Smith',
+            company: 'Global Electronics Inc',
+            email: 'john.smith@globalelectronics.com',
+            phone: '+1-555-0123',
+            country: 'United States',
+            status: 'qualified',
+            created_at: new Date(Date.now() - 86400000).toISOString()
+          },
+          {
+            id: 2,
+            name: 'Maria Garcia',
+            company: 'European Machinery Ltd',
+            email: 'maria.garcia@europeanmachinery.com',
+            phone: '+49-30-12345678',
+            country: 'Germany',
+            status: 'contacted',
+            created_at: new Date(Date.now() - 172800000).toISOString()
+          },
+          {
+            id: 3,
+            name: 'Hiroshi Tanaka',
+            company: 'Tokyo Trading Co',
+            email: 'h.tanaka@tokyotrading.jp',
+            phone: '+81-3-1234-5678',
+            country: 'Japan',
+            status: 'new',
+            created_at: new Date(Date.now() - 259200000).toISOString()
+          }
+        ];
+        setLeads(mockLeads);
+        setError('Using demo data - Supabase database not configured');
+        return;
+      }
+      
       setLeads(data || []);
+      setError(null);
     } catch (err) {
       console.error('Error loading leads:', err);
-      setError('Failed to load leads');
+      setError('Failed to load leads - using demo data');
+      // Fallback to empty array
+      setLeads([]);
     } finally {
       setLoading(false);
     }
@@ -104,7 +146,10 @@ const SimpleLeadGenerationPage: React.FC = () => {
           })
           .eq('id', editingLead.id);
 
-        if (error) throw error;
+        if (error) {
+          console.warn('Supabase update failed, simulating success:', error);
+          setError('Demo mode - changes not saved to database');
+        }
       } else {
         // Create new lead
         const { error } = await supabase
@@ -115,7 +160,18 @@ const SimpleLeadGenerationPage: React.FC = () => {
             funnel_stage: 'find'
           }]);
 
-        if (error) throw error;
+        if (error) {
+          console.warn('Supabase insert failed, simulating success:', error);
+          // Add to local state for demo
+          const newLead: Lead = {
+            id: Date.now(),
+            ...formData,
+            status: 'new',
+            created_at: new Date().toISOString()
+          };
+          setLeads(prev => [newLead, ...prev]);
+          setError('Demo mode - lead added locally (not saved to database)');
+        }
       }
 
       // Reset form and close dialog
@@ -129,11 +185,13 @@ const SimpleLeadGenerationPage: React.FC = () => {
       setEditingLead(null);
       setDialogOpen(false);
       
-      // Reload leads
-      await loadLeads();
+      // Reload leads only if no error
+      if (!error) {
+        await loadLeads();
+      }
     } catch (err) {
       console.error('Error saving lead:', err);
-      setError('Failed to save lead');
+      setError('Failed to save lead - demo mode active');
     }
   };
 
