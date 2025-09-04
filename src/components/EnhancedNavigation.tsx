@@ -33,10 +33,12 @@ import {
   Email as EmailIcon,
   TrendingUp as TrendingUpIcon,
   Public as PublicIcon,
+  ContactPage as LeadsIcon,
   Settings as SettingsIcon,
   Help as HelpIcon,
   Logout as LogoutIcon,
   Api as ApiIcon,
+  Code as CodeIcon,
 } from '@mui/icons-material';
 import { colorPalette, getGradientBackground } from '../theme/ExportGuideTheme';
 import { useAuth } from '../contexts/AuthContext';
@@ -59,12 +61,14 @@ const EnhancedNavigation: React.FC<NavigationProps> = ({ currentPage, onPageChan
     { id: 'home', label: 'Dashboard', icon: <DashboardIcon />, color: colorPalette.accent.info },
     { id: 'lead-generation', label: 'Lead Generation', icon: <SearchIcon />, color: colorPalette.accent.export },
     { id: 'buyer-discovery', label: 'Buyer Discovery', icon: <BusinessIcon />, color: colorPalette.accent.success },
+    { id: 'leads', label: 'My Leads', icon: <LeadsIcon />, color: colorPalette.primary.main },
     { id: 'market-research', label: 'Market Research', icon: <AssessmentIcon />, color: colorPalette.accent.warning },
     { id: 'compliance', label: 'Compliance', icon: <SecurityIcon />, color: colorPalette.accent.error },
     { id: 'quotation', label: 'Quotations', icon: <EmailIcon />, color: colorPalette.accent.import },
     { id: 'indian-trade-orgs', label: 'Trade Organizations', icon: <PublicIcon />, color: colorPalette.primary.main },
     { id: 'free-api-demo', label: 'Free APIs', icon: <ApiIcon />, color: colorPalette.secondary.main },
     { id: 'enhanced-api-demo', label: '🔥 Live APIs', icon: <ApiIcon />, color: '#FF6B35' },
+    { id: 'bitbucket-demo', label: '🔧 Bitbucket', icon: <CodeIcon />, color: '#0052CC' },
   ];
 
   const mockNotifications = [
@@ -176,21 +180,32 @@ const EnhancedNavigation: React.FC<NavigationProps> = ({ currentPage, onPageChan
           borderBottom: `1px solid ${colorPalette.neutral[200]}`,
         }}
       >
-        <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 2, md: 3 } }}>
+        <Toolbar sx={{ 
+          justifyContent: 'space-between', 
+          px: { xs: 2, md: 4 },
+          py: 1,
+          minHeight: { xs: 64, md: 72 }
+        }}>
           {/* Left Section - Logo and Mobile Menu */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, md: 2 } }}>
             {isMobile && (
               <IconButton
                 color="inherit"
                 onClick={handleDrawerToggle}
-                sx={{ mr: 1 }}
+                sx={{ 
+                  mr: 1,
+                  p: 1,
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  }
+                }}
               >
                 <MenuIcon />
               </IconButton>
             )}
             
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <TrendingUpIcon sx={{ fontSize: 32, color: '#ffffff' }} />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <TrendingUpIcon sx={{ fontSize: { xs: 28, md: 32 }, color: '#ffffff' }} />
               <Typography
                 variant="h5"
                 component="div"
@@ -198,6 +213,7 @@ const EnhancedNavigation: React.FC<NavigationProps> = ({ currentPage, onPageChan
                   fontWeight: 700,
                   color: '#ffffff',
                   letterSpacing: '-0.5px',
+                  fontSize: { xs: '1.25rem', md: '1.5rem' },
                   background: 'linear-gradient(45deg, #ffffff 30%, #e3f2fd 90%)',
                   backgroundClip: 'text',
                   WebkitBackgroundClip: 'text',
@@ -211,7 +227,14 @@ const EnhancedNavigation: React.FC<NavigationProps> = ({ currentPage, onPageChan
 
           {/* Center Section - Desktop Navigation */}
           {!isMobile && (
-            <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              gap: 0.5,
+              mx: 2,
+              flexGrow: 1,
+              justifyContent: 'center',
+              maxWidth: '800px'
+            }}>
               {navigationItems.slice(0, 6).map((item) => (
                 <Button
                   key={item.id}
@@ -221,11 +244,12 @@ const EnhancedNavigation: React.FC<NavigationProps> = ({ currentPage, onPageChan
                     color: currentPage === item.id ? '#ffffff' : 'rgba(255, 255, 255, 0.8)',
                     backgroundColor: currentPage === item.id ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
                     borderRadius: 2,
-                    px: 2,
+                    px: { md: 1.5, lg: 2 },
                     py: 1,
                     textTransform: 'none',
                     fontWeight: currentPage === item.id ? 600 : 400,
-                    fontSize: '0.875rem',
+                    fontSize: { md: '0.8rem', lg: '0.875rem' },
+                    minWidth: 'auto',
                     backdropFilter: currentPage === item.id ? 'blur(10px)' : 'none',
                     border: currentPage === item.id ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid transparent',
                     '&:hover': {
@@ -241,7 +265,12 @@ const EnhancedNavigation: React.FC<NavigationProps> = ({ currentPage, onPageChan
           )}
 
           {/* Right Section - Notifications and Profile */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: { xs: 0.5, md: 1 },
+            ml: 'auto'
+          }}>
             {/* Notifications */}
             <Tooltip title="Notifications">
               <IconButton
@@ -249,6 +278,7 @@ const EnhancedNavigation: React.FC<NavigationProps> = ({ currentPage, onPageChan
                 onClick={handleNotificationMenuOpen}
                 sx={{
                   color: 'rgba(255, 255, 255, 0.9)',
+                  p: 1,
                   '&:hover': {
                     backgroundColor: 'rgba(255, 255, 255, 0.1)',
                   },
@@ -266,7 +296,7 @@ const EnhancedNavigation: React.FC<NavigationProps> = ({ currentPage, onPageChan
                 onClick={handleProfileMenuOpen}
                 sx={{
                   p: 0.5,
-                  ml: 1,
+                  ml: { xs: 0.5, md: 1 },
                   border: '2px solid rgba(255, 255, 255, 0.2)',
                   '&:hover': {
                     border: '2px solid rgba(255, 255, 255, 0.4)',
@@ -275,7 +305,7 @@ const EnhancedNavigation: React.FC<NavigationProps> = ({ currentPage, onPageChan
               >
                 <Avatar
                   sx={{
-                    width: 36,
+                    width: { xs: 32, md: 36 },
                     height: 36,
                     background: 'linear-gradient(45deg, #ffffff 30%, #e3f2fd 90%)',
                     color: colorPalette.primary.main,

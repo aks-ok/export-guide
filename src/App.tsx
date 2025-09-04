@@ -24,8 +24,11 @@ import IndianTradeOrgsPage from './pages/IndianTradeOrgsPage';
 import SimpleLeadGenerationPage from './pages/SimpleLeadGenerationPage';
 import SimpleMarketResearchPage from './pages/SimpleMarketResearchPage';
 import SimpleExportCompliancePage from './pages/SimpleExportCompliancePage';
+import LeadsPage from './pages/LeadsPage';
 import FreeAPIDemo from './pages/FreeAPIDemo';
 import EnhancedAPIDemo from './pages/EnhancedAPIDemo';
+import BitbucketDemoPage from './pages/BitbucketDemoPage';
+import { ChatAssistant } from './components/assistant';
 import { googleAnalyticsService } from './services/GoogleAnalyticsService';
 import { initializeServices } from './services';
 import { initializeApiServices } from './services/api';
@@ -152,6 +155,7 @@ const LoginScreen: React.FC = () => {
 const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
   const [currentPage, setCurrentPage] = useState('home');
+  const [chatVisible, setChatVisible] = useState(true); // Make assistant visible by default
 
   // Initialize services on app startup
   useEffect(() => {
@@ -171,12 +175,14 @@ const AppContent: React.FC = () => {
       'home': 'ExportGuide - Home',
       'lead-generation': 'Lead Generation',
       'buyer-discovery': 'Buyer Discovery',
+      'leads': 'My Leads',
       'market-research': 'Market Research',
       'compliance': 'Export Compliance',
       'quotations': 'Quotations',
       'indian-trade-orgs': 'Indian Trade Organizations',
       'free-api-demo': 'Free API Demo',
-      'enhanced-api-demo': 'Enhanced API Demo'
+      'enhanced-api-demo': 'Enhanced API Demo',
+      'bitbucket-demo': 'Bitbucket Integration'
     };
     return titles[page] || 'ExportGuide';
   };
@@ -187,6 +193,8 @@ const AppContent: React.FC = () => {
         return <SimpleLeadGenerationPage />;
       case 'buyer-discovery':
         return <BuyerDiscoveryPage />;
+      case 'leads':
+        return <LeadsPage />;
       case 'market-research':
         return <SimpleMarketResearchPage />;
       case 'compliance':
@@ -199,6 +207,8 @@ const AppContent: React.FC = () => {
         return <FreeAPIDemo />;
       case 'enhanced-api-demo':
         return <EnhancedAPIDemo />;
+      case 'bitbucket-demo':
+        return <BitbucketDemoPage />;
       default:
         return <EnhancedHomePage onNavigate={setCurrentPage} />;
     }
@@ -224,6 +234,16 @@ const AppContent: React.FC = () => {
       <Box component="main" sx={{ flexGrow: 1 }}>
         {renderPage()}
       </Box>
+      
+      {/* AI Chat Assistant Widget */}
+      <ChatAssistant 
+        userId={user.id}
+        userProfile={user}
+        onNavigate={setCurrentPage}
+        isVisible={chatVisible}
+        onToggle={() => setChatVisible(!chatVisible)}
+        position="bottom-right"
+      />
     </Box>
   );
 };

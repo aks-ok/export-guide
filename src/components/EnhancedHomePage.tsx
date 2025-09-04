@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -16,9 +16,12 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  CircularProgress,
   Alert,
   Skeleton,
+  Tooltip,
+  Snackbar,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import {
   TrendingUp as TrendingUpIcon,
@@ -33,6 +36,7 @@ import {
   Notifications as NotificationsIcon,
   Refresh as RefreshIcon,
   Warning as WarningIcon,
+  MoreHoriz as MoreHorizIcon,
 } from '@mui/icons-material';
 import { colorPalette, getGradientBackground, getBoxShadow } from '../theme/ExportGuideTheme';
 import { dashboardService } from '../services/DashboardService';
@@ -51,15 +55,22 @@ const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
   const [recentActivities, setRecentActivities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [dataSource, setDataSource] = useState<string>('Loading...');
+  const [dataSource, setDataSource] = useState<string>('');
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info'>('info');
+  const [activeSection, setActiveSection] = useState<string>('overview');
   const { handleApiError } = useErrorHandler();
+  
+  // References to section elements for smooth scrolling
+  const overviewRef = useRef<HTMLDivElement>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
+  const marketsRef = useRef<HTMLDivElement>(null);
+  const actionsRef = useRef<HTMLDivElement>(null);
+  const activitiesRef = useRef<HTMLDivElement>(null);
+  const metricsRef = useRef<HTMLDivElement>(null);
 
-  // Load dashboard data
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
-
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -83,18 +94,42 @@ const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
 
       setTopMarkets(marketsData);
       setRecentActivities(activitiesData);
+      
+      // Data refreshed silently
 
     } catch (err) {
       const errorMessage = 'Failed to load dashboard data';
       setError(errorMessage);
       handleApiError(err, 'EnhancedHomePage');
+      
+      // Show error message
+      setSnackbarMessage(errorMessage);
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
     } finally {
       setLoading(false);
     }
-  };
+  }, [handleApiError]);
+
+  // Load dashboard data
+  useEffect(() => {
+    loadDashboardData();
+    
+    // Set up auto-refresh interval (every 5 minutes)
+    const refreshInterval = setInterval(() => {
+      loadDashboardData();
+    }, 5 * 60 * 1000);
+    
+    return () => clearInterval(refreshInterval);
+  }, [loadDashboardData]);
 
   const handleRefresh = () => {
+    setLoading(true);
     loadDashboardData();
+  };
+  
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
   };
 
   // Transform dashboard stats to display format
@@ -107,7 +142,8 @@ const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
         value: dashboardStats.activeLeads.toLocaleString(),
         change: `${dashboardStats.leadsChange > 0 ? '+' : ''}${dashboardStats.leadsChange.toFixed(1)}%`,
         trend: dashboardStats.leadsChange >= 0 ? 'up' : 'down',
-        color: colorPalette.accent.success,
+        color: '#4CAF50', // Darker green for better contrast
+        textColor: '#000000', // Black text for contrast
         icon: <SearchIcon />,
       },
       {
@@ -115,7 +151,8 @@ const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
         value: DataTransformUtils.formatLargeNumber(dashboardStats.exportValue),
         change: `${dashboardStats.exportChange > 0 ? '+' : ''}${dashboardStats.exportChange.toFixed(1)}%`,
         trend: dashboardStats.exportChange >= 0 ? 'up' : 'down',
-        color: colorPalette.accent.export,
+        color: '#00838F', // Darker cyan for better contrast
+        textColor: '#000000', // Black text for contrast
         icon: <PublicIcon />,
       },
       {
@@ -123,7 +160,8 @@ const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
         value: dashboardStats.activeBuyers.toLocaleString(),
         change: `${dashboardStats.buyersChange > 0 ? '+' : ''}${dashboardStats.buyersChange.toFixed(1)}%`,
         trend: dashboardStats.buyersChange >= 0 ? 'up' : 'down',
-        color: colorPalette.accent.info,
+        color: '#0D47A1', // Darker blue for better contrast
+        textColor: '#000000', // Black text for better readability
         icon: <BusinessIcon />,
       },
       {
@@ -131,7 +169,8 @@ const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
         value: `${Math.round(dashboardStats.complianceScore)}%`,
         change: `${dashboardStats.complianceChange > 0 ? '+' : ''}${dashboardStats.complianceChange.toFixed(1)}%`,
         trend: dashboardStats.complianceChange >= 0 ? 'up' : 'down',
-        color: colorPalette.accent.warning,
+        color: '#E65100', // Darker orange for better contrast
+        textColor: '#000000', // Black text for contrast
         icon: <SecurityIcon />,
       },
     ];
@@ -181,8 +220,78 @@ const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
     return iconMap[iconName] || <TrendingUpIcon />;
   };
 
+  // Handle section change
+  const handleSectionChange = (event: React.SyntheticEvent, newValue: string) => {
+    setActiveSection(newValue);
+    
+    // Scroll to the selected section
+    const sectionRefs: {[key: string]: React.RefObject<HTMLDivElement>} = {
+      'overview': overviewRef,
+      'stats': statsRef,
+      'markets': marketsRef,
+      'actions': actionsRef,
+      'activities': activitiesRef,
+      'metrics': metricsRef
+    };
+    
+    const targetRef = sectionRefs[newValue];
+    if (targetRef && targetRef.current) {
+      targetRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // Section navigation component
+  const SectionNavigation = () => (
+    <Paper 
+      elevation={0}
+      sx={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 10,
+        borderRadius: 0,
+        borderBottom: `1px solid ${colorPalette.neutral[200]}`,
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        backdropFilter: 'blur(10px)',
+        mb: 3,
+      }}
+    >
+      <Tabs 
+        value={activeSection}
+        onChange={handleSectionChange}
+        variant="scrollable"
+        scrollButtons="auto"
+        sx={{
+          '& .MuiTabs-indicator': {
+            backgroundColor: colorPalette.primary.main,
+            height: 3,
+          },
+          '& .MuiTab-root': {
+            textTransform: 'none',
+            fontWeight: 500,
+            fontSize: '0.9rem',
+            minWidth: 'auto',
+            px: 3,
+            py: 2,
+            '&.Mui-selected': {
+              color: colorPalette.primary.main,
+              fontWeight: 600,
+            },
+          },
+        }}
+      >
+        <Tab label="Overview" value="overview" icon={<AssessmentIcon fontSize="small" />} iconPosition="start" />
+        <Tab label="Stats" value="stats" icon={<TrendingUpIcon fontSize="small" />} iconPosition="start" />
+        <Tab label="Markets" value="markets" icon={<PublicIcon fontSize="small" />} iconPosition="start" />
+        <Tab label="Quick Actions" value="actions" icon={<SearchIcon fontSize="small" />} iconPosition="start" />
+        <Tab label="Activities" value="activities" icon={<NotificationsIcon fontSize="small" />} iconPosition="start" />
+        <Tab label="Performance" value="metrics" icon={<BusinessIcon fontSize="small" />} iconPosition="start" />
+      </Tabs>
+    </Paper>
+  );
+
   return (
     <Box sx={{ p: { xs: 2, md: 3 }, backgroundColor: colorPalette.background.default, minHeight: '100vh' }}>
+      <SectionNavigation />
       {/* Error Alert */}
       {error && (
         <Alert 
@@ -208,29 +317,23 @@ const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
             color={dataSource.includes('World Bank') ? 'success' : 'warning'}
             variant="outlined"
           />
-          <Button
-            size="small"
-            startIcon={<RefreshIcon />}
-            onClick={handleRefresh}
-            disabled={loading}
-            sx={{ ml: 'auto' }}
-          >
-            Refresh Data
-          </Button>
         </Box>
       )}
 
       {/* Hero Section */}
       <Paper
+        ref={overviewRef}
         elevation={0}
         sx={{
-          background: getGradientBackground('135deg'),
-          color: 'white',
-          p: 4,
+          background: 'linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 50%, #d0d0d0 100%)',
+          color: '#000000',
+          p: { xs: 3, md: 4 },
           borderRadius: 3,
           mb: 4,
           position: 'relative',
           overflow: 'hidden',
+          boxShadow: '0 8px 24px rgba(72, 72, 72, 0.15)',
+          scrollMarginTop: '80px',
           '&::before': {
             content: '""',
             position: 'absolute',
@@ -240,6 +343,7 @@ const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
             height: '100%',
             background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="30" cy="30" r="4"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
             opacity: 0.3,
+            backdropFilter: 'blur(10px)',
           },
         }}
       >
@@ -250,15 +354,14 @@ const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
               sx={{
                 fontWeight: 700,
                 mb: 2,
-                background: 'linear-gradient(45deg, #ffffff 30%, #e3f2fd 90%)',
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
+                fontSize: { xs: '2rem', md: '2.5rem' },
+                color: '#ffffff',
+                textShadow: '0 2px 10px rgba(0,0,0,0.2)',
               }}
             >
               Welcome to ExportGuide
             </Typography>
-            <Typography variant="h6" sx={{ mb: 3, opacity: 0.9, fontWeight: 400, color: 'white' }}>
+            <Typography variant="h6" sx={{ mb: 3, fontWeight: 400, color: '#000000', fontSize: { xs: '1rem', md: '1.25rem' } }}>
               Advanced business intelligence tools including dashboards, reporting, and analytics tailored to export markets.
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
@@ -268,12 +371,10 @@ const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
                 startIcon={<SearchIcon />}
                 onClick={() => onNavigate('lead-generation')}
                 sx={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  backgroundColor: colorPalette.primary.main,
                   color: 'white',
                   '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                    backgroundColor: colorPalette.primary.dark,
                   },
                 }}
               >
@@ -285,11 +386,11 @@ const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
                 startIcon={<AssessmentIcon />}
                 onClick={() => onNavigate('market-research')}
                 sx={{
-                  borderColor: 'rgba(255, 255, 255, 0.5)',
-                  color: 'white',
+                  borderColor: colorPalette.primary.main,
+                  color: colorPalette.primary.main,
                   '&:hover': {
-                    borderColor: 'rgba(255, 255, 255, 0.8)',
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    borderColor: colorPalette.primary.dark,
+                    backgroundColor: colorPalette.primary.light,
                   },
                 }}
               >
@@ -309,7 +410,7 @@ const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
                   border: '2px solid rgba(255, 255, 255, 0.3)',
                 }}
               >
-                <TrendingUpIcon sx={{ fontSize: 60, color: 'white' }} />
+                <TrendingUpIcon sx={{ fontSize: 60, color: colorPalette.primary.main }} />
               </Avatar>
             </Box>
           </Grid>
@@ -317,7 +418,7 @@ const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
       </Paper>
 
       {/* Dashboard Stats */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      <Grid container spacing={3} sx={{ mb: 4 }} ref={statsRef}>
         {loading ? (
           // Loading skeletons
           Array.from({ length: 4 }).map((_, index) => (
@@ -343,6 +444,7 @@ const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
                   border: `1px solid ${colorPalette.neutral[200]}`,
                   borderRadius: 3,
                   transition: 'all 0.3s ease',
+                  boxShadow: '0 2px 12px rgba(72, 72, 72, 0.08)',
                   '&:hover': {
                     transform: 'translateY(-4px)',
                     boxShadow: getBoxShadow('high'),
@@ -354,8 +456,8 @@ const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                     <Avatar
                       sx={{
-                        backgroundColor: `${stat.color}15`,
-                        color: stat.color,
+                        backgroundColor: stat.color,
+                        color: stat.textColor,
                         width: 48,
                         height: 48,
                       }}
@@ -388,19 +490,35 @@ const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
 
       <Grid container spacing={4}>
         {/* Quick Actions */}
-        <Grid item xs={12} md={8}>
+        <Grid item xs={12} md={8} ref={actionsRef}>
           <Card
             elevation={0}
             sx={{
               borderRadius: 3,
               border: `1px solid ${colorPalette.neutral[200]}`,
               mb: 3,
+              boxShadow: '0 2px 12px rgba(72, 72, 72, 0.08)',
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                boxShadow: '0 4px 16px rgba(72, 72, 72, 0.1)',
+              },
             }}
           >
             <CardContent sx={{ p: 3 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, color: colorPalette.primary.main, mb: 3 }}>
-                Quick Actions
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: colorPalette.primary.main }}>
+                  Quick Actions
+                </Typography>
+                <Tooltip title="More actions">
+                  <IconButton 
+                    size="small" 
+                    onClick={() => onNavigate('settings')}
+                    sx={{ color: colorPalette.primary.main }}
+                  >
+                    <MoreHorizIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
               <Grid container spacing={2}>
                 {quickActions.map((action, index) => (
                   <Grid item xs={12} sm={6} key={index}>
@@ -454,9 +572,11 @@ const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
           {/* Top Export Markets */}
           <Card
             elevation={0}
+            ref={marketsRef}
             sx={{
               borderRadius: 3,
               border: `1px solid ${colorPalette.neutral[200]}`,
+              scrollMarginTop: '80px'
             }}
           >
             <CardContent sx={{ p: 3 }}>
@@ -464,14 +584,25 @@ const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
                 <Typography variant="h6" sx={{ fontWeight: 600, color: colorPalette.primary.main }}>
                   Top Export Markets
                 </Typography>
-                <Button
-                  size="small"
-                  endIcon={<ArrowForwardIcon />}
-                  onClick={() => onNavigate('market-research')}
-                  sx={{ color: colorPalette.primary.main }}
-                >
-                  View All
-                </Button>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Tooltip title="Refresh market data">
+                    <IconButton 
+                      size="small" 
+                      onClick={handleRefresh}
+                      sx={{ mr: 1, color: colorPalette.primary.main }}
+                    >
+                      <RefreshIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                  <Button
+                    size="small"
+                    endIcon={<ArrowForwardIcon />}
+                    onClick={() => onNavigate('market-research')}
+                    sx={{ color: colorPalette.primary.main }}
+                  >
+                    View All
+                  </Button>
+                </Box>
               </Box>
               <List sx={{ p: 0 }}>
                 {topMarkets.map((market, index) => (
@@ -510,7 +641,7 @@ const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
         </Grid>
 
         {/* Recent Activities & Notifications */}
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={4} ref={activitiesRef}>
           <Card
             elevation={0}
             sx={{
@@ -520,11 +651,13 @@ const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
             }}
           >
             <CardContent sx={{ p: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <NotificationsIcon sx={{ color: colorPalette.primary.main, mr: 1 }} />
-                <Typography variant="h6" sx={{ fontWeight: 600, color: colorPalette.primary.main }}>
-                  Recent Activities
-                </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <NotificationsIcon sx={{ color: colorPalette.primary.main, mr: 1 }} />
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: colorPalette.primary.main }}>
+                    Recent Activities
+                  </Typography>
+                </Box>
               </Box>
               <List sx={{ p: 0 }}>
                 {loading ? (
@@ -594,15 +727,28 @@ const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
           {/* Performance Metrics */}
           <Card
             elevation={0}
+            ref={metricsRef}
             sx={{
               borderRadius: 3,
               border: `1px solid ${colorPalette.neutral[200]}`,
+              scrollMarginTop: '80px'
             }}
           >
             <CardContent sx={{ p: 3 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, color: colorPalette.primary.main, mb: 3 }}>
-                Performance Metrics
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: colorPalette.primary.main }}>
+                  Performance Metrics
+                </Typography>
+                <Tooltip title="Refresh metrics">
+                  <IconButton 
+                    size="small" 
+                    onClick={handleRefresh}
+                    sx={{ color: colorPalette.primary.main }}
+                  >
+                    <RefreshIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
               
               {loading ? (
                 // Loading skeletons for performance metrics
@@ -698,6 +844,21 @@ const EnhancedHomePage: React.FC<EnhancedHomePageProps> = ({ onNavigate }) => {
           </Card>
         </Grid>
       </Grid>
+      {/* Snackbar for notifications */}
+      <Snackbar 
+        open={snackbarOpen} 
+        autoHideDuration={6000} 
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={handleSnackbarClose} 
+          severity={snackbarSeverity} 
+          sx={{ width: '100%' }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

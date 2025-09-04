@@ -1,8 +1,10 @@
 // Import for internal use
 import { worldBankService } from './WorldBankService';
+import { bitbucketService } from './BitbucketService';
 
 // API Services
 export { WorldBankService, worldBankService } from './WorldBankService';
+export { bitbucketService } from './BitbucketService';
 
 // Service registry for managing multiple API services
 export class ApiServiceRegistry {
@@ -56,6 +58,9 @@ export class ApiServiceRegistry {
 export const initializeApiServices = () => {
   // Register World Bank service
   ApiServiceRegistry.register('worldBank', worldBankService);
+  
+  // Register Bitbucket service
+  ApiServiceRegistry.register('bitbucket', bitbucketService);
   
   console.log('API Services initialized:', Array.from(ApiServiceRegistry.getAll().keys()));
 };

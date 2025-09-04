@@ -9,7 +9,10 @@
 
 
 
-- [ ] 2. Clean up EnhancedHomePage.tsx unused imports and variables
+- [x] 2. Clean up EnhancedHomePage.tsx unused imports and variables
+
+
+
   - Remove unused icon imports: `StarIcon`, `TimelineIcon`, `LanguageIcon`, `ShippingIcon`, `BankIcon`, `SpeedIcon`
   - Remove the unused `theme` variable declaration
 

@@ -192,23 +192,66 @@ const BuyerDiscoveryPage: React.FC = () => {
 
   const handleAddToLeads = async (buyer: Buyer) => {
     try {
-      const { error } = await supabase
-        .from('leads')
-        .insert([{
-          name: buyer.contact_person,
-          company: buyer.company_name,
-          email: buyer.email,
-          phone: buyer.phone,
-          country: buyer.country,
-          status: 'new'
-        }]);
-
-      if (error) throw error;
-
-      alert(`${buyer.contact_person} from ${buyer.company_name} has been added to your leads!`);
+      setError(''); // Clear any previous errors
+      
+      // Get existing leads from localStorage
+      const existingLeads = JSON.parse(localStorage.getItem('exportguide_leads') || '[]');
+      
+      // Check if buyer is already in leads
+      const existingLead = existingLeads.find((lead: any) => 
+        lead.email === buyer.email || 
+        (lead.company === buyer.company_name && lead.name === buyer.contact_person)
+      );
+      
+      if (existingLead) {
+        setError(`${buyer.contact_person} from ${buyer.company_name} is already in your leads!`);
+        return;
+      }
+      
+      // Create new lead object
+      const newLead = {
+        id: Date.now(), // Simple ID generation
+        name: buyer.contact_person,
+        company: buyer.company_name,
+        email: buyer.email,
+        phone: buyer.phone || '',
+        country: buyer.country,
+        industry: buyer.industry,
+        status: 'new',
+        dateAdded: new Date().toISOString(),
+        source: 'buyer_discovery'
+      };
+      
+      // Add to leads array
+      const updatedLeads = [...existingLeads, newLead];
+      
+      // Save to localStorage
+      localStorage.setItem('exportguide_leads', JSON.stringify(updatedLeads));
+      
+      // Show success message
+      setError(''); // Clear error
+      alert(`✅ Success! ${buyer.contact_person} from ${buyer.company_name} has been added to your leads!`);
+      
+      // Optional: Try to save to Supabase as well (fallback to localStorage if it fails)
+      try {
+        await supabase
+          .from('leads')
+          .insert([{
+            name: buyer.contact_person,
+            company: buyer.company_name,
+            email: buyer.email,
+            phone: buyer.phone,
+            country: buyer.country,
+            industry: buyer.industry,
+            status: 'new'
+          }]);
+      } catch (supabaseError) {
+        console.log('Supabase leads table not available, using localStorage only');
+      }
+      
     } catch (err) {
       console.error('Error adding to leads:', err);
-      setError('Failed to add buyer to leads');
+      setError('❌ Failed to add buyer to leads. Please try again.');
     }
   };
 
